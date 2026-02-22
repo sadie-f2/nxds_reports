@@ -1,0 +1,36 @@
+{
+  "WasSuccessful": true,
+  "Value": [
+    {
+      "Id": 1001,
+      "FullName": "Alice Nguyen",
+      "Email": "alice@example.com",
+      "Active": true,
+      "Tariff": {
+        "Id": 10,
+        "Name": "Hot Desk Monthly"
+      }
+    },
+    {
+      "Id": 1002,
+      "FullName": "Bob Okonkwo",
+      "Email": "bob@example.com",
+      "Active": false,
+      "Tariff": "Dedicated Desk"
+    },
+    {
+      "Id": 1003,
+      "FullName": "Carmen Reyes",
+      "Email": "carmen@example.com",
+      "Active": true,
+      "Tariff": {
+        "Id": 12,
+        "Name": "Private Office"
+      }
+    }
+  ],
+  "CurrentPage": 1,
+  "TotalPages": 1,
+  "TotalItems": 3,
+  "HasNextPage": false
+}

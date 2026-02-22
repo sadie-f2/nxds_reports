@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+.pytest_cache/
+.mypy_cache/
+.tox/
+.nox/
+.hypothesis/
+.cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+*.py,cover
+venv/
+.venv/
+env/
+.env/
+ENV/
+
+# Environment / secrets
+.env
+
+# Output files
+*.csv
+*.xlsx
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
