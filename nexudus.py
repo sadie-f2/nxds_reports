@@ -76,7 +76,11 @@ def make_auth_header(config):
 
 def _mock_response(url):
     """Return canned JSON from mock_data/ when NEXUDUS_MOCK=1."""
-    if "coworkers" in url:
+    if "coworkercontract" in url:
+        mock_file = MOCK_DATA_DIR / "coworkercontracts_page1.json"
+    elif "coworkerinvoice" in url:
+        mock_file = MOCK_DATA_DIR / "coworkerinvoices_page1.json"
+    elif "coworkers" in url:
         mock_file = MOCK_DATA_DIR / "coworkers_page1.json"
     else:
         # Generic empty response for unknown endpoints

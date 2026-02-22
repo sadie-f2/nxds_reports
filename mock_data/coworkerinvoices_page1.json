@@ -1,0 +1,49 @@
+{
+  "WasSuccessful": true,
+  "Value": [
+    {
+      "Id": 3001,
+      "CoworkerFullName": "Alice Nguyen",
+      "CoworkerEmail": "alice@example.com",
+      "InvoiceNumber": "INV-001",
+      "TotalAmount": 150.00,
+      "DueDate": "2025-11-15T00:00:00",
+      "Paid": false,
+      "PaidOn": null
+    },
+    {
+      "Id": 3002,
+      "CoworkerFullName": "Frank Santos",
+      "CoworkerEmail": "frank@example.com",
+      "InvoiceNumber": "INV-002",
+      "TotalAmount": 350.00,
+      "DueDate": "2026-01-10T00:00:00",
+      "Paid": false,
+      "PaidOn": null
+    },
+    {
+      "Id": 3003,
+      "CoworkerFullName": "Bob Okonkwo",
+      "CoworkerEmail": "bob@example.com",
+      "InvoiceNumber": "INV-003",
+      "TotalAmount": 750.00,
+      "DueDate": "2026-02-01T00:00:00",
+      "Paid": false,
+      "PaidOn": null
+    },
+    {
+      "Id": 3004,
+      "CoworkerFullName": "Carmen Reyes",
+      "CoworkerEmail": "carmen@example.com",
+      "InvoiceNumber": "INV-004",
+      "TotalAmount": 95.00,
+      "DueDate": "2026-02-20T00:00:00",
+      "Paid": false,
+      "PaidOn": null
+    }
+  ],
+  "CurrentPage": 1,
+  "TotalPages": 1,
+  "TotalItems": 4,
+  "HasNextPage": false
+}

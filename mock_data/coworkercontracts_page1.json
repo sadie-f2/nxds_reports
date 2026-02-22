@@ -1,0 +1,59 @@
+{
+  "WasSuccessful": true,
+  "Value": [
+    {
+      "Id": 2001,
+      "CoworkerId": 1001,
+      "CoworkerFullName": "Alice Nguyen",
+      "CoworkerEmail": "alice@example.com",
+      "TariffName": "Hot Desk Monthly",
+      "StartDate": "2026-02-10T00:00:00",
+      "EndDate": "2026-12-31T00:00:00",
+      "Active": true
+    },
+    {
+      "Id": 2002,
+      "CoworkerId": 1002,
+      "CoworkerFullName": "Bob Okonkwo",
+      "CoworkerEmail": "bob@example.com",
+      "TariffName": "Dedicated Desk",
+      "StartDate": "2026-01-25T00:00:00",
+      "EndDate": "2027-01-25T00:00:00",
+      "Active": true
+    },
+    {
+      "Id": 2003,
+      "CoworkerId": 1003,
+      "CoworkerFullName": "Carmen Reyes",
+      "CoworkerEmail": "carmen@example.com",
+      "TariffName": "Private Office",
+      "StartDate": "2025-11-01T00:00:00",
+      "EndDate": "2026-10-31T00:00:00",
+      "Active": true
+    },
+    {
+      "Id": 2004,
+      "CoworkerId": 1004,
+      "CoworkerFullName": "David Kim",
+      "CoworkerEmail": "david@example.com",
+      "TariffName": "Hot Desk Monthly",
+      "StartDate": "2026-02-15T00:00:00",
+      "EndDate": "2026-03-15T00:00:00",
+      "Active": true
+    },
+    {
+      "Id": 2005,
+      "CoworkerId": 1005,
+      "CoworkerFullName": "Elena Petrov",
+      "CoworkerEmail": "elena@example.com",
+      "TariffName": "Virtual Office",
+      "StartDate": "2025-06-01T00:00:00",
+      "EndDate": null,
+      "Active": false
+    }
+  ],
+  "CurrentPage": 1,
+  "TotalPages": 1,
+  "TotalItems": 5,
+  "HasNextPage": false
+}

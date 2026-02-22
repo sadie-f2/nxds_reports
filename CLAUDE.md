@@ -37,28 +37,42 @@ Required env vars (see `.env.example`):
 ## Running Reports
 
 ```bash
-# Mock mode — no credentials needed
+# Members
 NEXUDUS_MOCK=1 python report_members.py
-
-# CSV to file
 NEXUDUS_MOCK=1 python report_members.py --file /tmp/members.csv
-
-# Excel output
 NEXUDUS_MOCK=1 python report_members.py --output excel --file /tmp/members.xlsx
-
-# Active members only
 NEXUDUS_MOCK=1 python report_members.py --active-only
+python report_members.py --file members.csv   # real credentials from .env
 
-# With real credentials (from .env)
-python report_members.py --file members.csv
+# New memberships — last 30 days (default)
+NEXUDUS_MOCK=1 python report_new_memberships.py
+# New memberships — custom range
+NEXUDUS_MOCK=1 python report_new_memberships.py --from 2026-01-01 --to 2026-02-22
+# New memberships — custom lookback window
+NEXUDUS_MOCK=1 python report_new_memberships.py --days 60
+
+# Active memberships — flat list
+NEXUDUS_MOCK=1 python report_active_memberships.py
+# Active memberships — summary by plan type
+NEXUDUS_MOCK=1 python report_active_memberships.py --summary
+
+# Arrears — sorted by age (oldest overdue first, default)
+NEXUDUS_MOCK=1 python report_arrears.py
+# Arrears — sorted by value (largest amount first)
+NEXUDUS_MOCK=1 python report_arrears.py --sort value
+# Arrears — Excel output
+NEXUDUS_MOCK=1 python report_arrears.py --output excel --file /tmp/arrears.xlsx
 ```
 
 ## Project Structure
 
 ```
-nexudus.py           # Core API client (load_config, api_get, get_all, etc.)
-report_members.py    # Member/coworker report
-mock_data/           # Canned API responses for NEXUDUS_MOCK=1
+nexudus.py                    # Core API client (load_config, api_get, get_all, etc.)
+report_members.py             # Member/coworker report
+report_new_memberships.py     # New contracts over a date range
+report_active_memberships.py  # Active contracts (flat list or --summary by plan type)
+report_arrears.py             # Unpaid invoices sorted by age or value
+mock_data/                    # Canned API responses for NEXUDUS_MOCK=1
 requirements.txt
 .env.example
 ```
