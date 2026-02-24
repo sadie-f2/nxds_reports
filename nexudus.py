@@ -136,12 +136,18 @@ def api_get(url, headers, params=None, timeout=30):
 
 
 def extract_value(response_json):
-    """Unwrap Nexudus envelope {WasSuccessful, Value}. Exit on failure."""
-    if not response_json.get("WasSuccessful", False):
-        message = response_json.get("Message", "Unknown API error")
-        print(f"ERROR: API error: {message}", file=sys.stderr)
-        sys.exit(1)
-    return response_json["Value"]
+    """Unwrap Nexudus envelope.
+
+    Real API returns {Records, HasNextPage, ...}.
+    Mock data uses {WasSuccessful, Value, ...}.
+    """
+    if "WasSuccessful" in response_json:
+        if not response_json["WasSuccessful"]:
+            message = response_json.get("Message", "Unknown API error")
+            print(f"ERROR: API error: {message}", file=sys.stderr)
+            sys.exit(1)
+        return response_json["Value"]
+    return response_json.get("Records", [])
 
 
 def get_page(base_url, endpoint, headers, page=1, size=100, extra_params=None):

@@ -77,6 +77,18 @@ requirements.txt
 .env.example
 ```
 
+## Running Tests
+
+```bash
+# Run all tests
+pytest tests/ -v
+
+# With coverage (requires pytest-cov)
+pytest tests/ -v --cov=. --cov-report=term-missing
+```
+
+Tests use mock data only — no credentials required.
+
 ## Coding Conventions
 
 - **Procedural**: use module-level functions, not classes

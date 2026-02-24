@@ -124,13 +124,15 @@ def main():
         print("Mock mode enabled — using local test data.", file=sys.stderr)
         response_json = nexudus._mock_response(ENDPOINT)
         records = nexudus.extract_value(response_json)
+        records = [r for r in records if r.get("Active") is True]
     else:
         headers = nexudus.make_auth_header(config)
-        records = nexudus.get_all(base_url, ENDPOINT, headers, size=args.size)
+        records = nexudus.get_all(
+            base_url, ENDPOINT, headers, size=args.size,
+            extra_params={"CoworkerContract_Active": "true"},
+        )
 
-    before = len(records)
-    records = [r for r in records if r.get("Active") is True]
-    print(f"Active contracts: {len(records)}/{before}", file=sys.stderr)
+    print(f"Active contracts: {len(records)}", file=sys.stderr)
 
     if args.summary:
         rows = build_summary_rows(records)
