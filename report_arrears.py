@@ -28,6 +28,7 @@ COLUMNS = [
     "DaysOverdue",
 ]
 ENDPOINT = "/billing/coworkerinvoices"
+MEMBERS_ENDPOINT = "/spaces/coworkers"
 
 
 def parse_args():
@@ -78,16 +79,24 @@ def compute_days_overdue(due_date):
     return max(0, (date.today() - due_date).days)
 
 
-def build_rows(records):
+def build_email_lookup(member_records):
+    """Build a CoworkerId -> email dict from coworker records."""
+    return {rec["Id"]: rec.get("Email", "") for rec in member_records if "Id" in rec}
+
+
+def build_rows(records, email_lookup=None):
     """Convert raw API records to flat dicts, computing DaysOverdue."""
+    if email_lookup is None:
+        email_lookup = {}
     rows = []
     for rec in records:
         due_date = parse_due_date(rec.get("DueDate", ""))
+        coworker_id = rec.get("CoworkerId")
         rows.append(
             {
                 "Id": rec.get("Id", ""),
                 "CoworkerFullName": rec.get("CoworkerFullName", ""),
-                "CoworkerEmail": rec.get("CoworkerEmail", ""),
+                "CoworkerEmail": email_lookup.get(coworker_id, ""),
                 "InvoiceNumber": rec.get("InvoiceNumber", ""),
                 "TotalAmount": rec.get("TotalAmount", ""),
                 "DueDate": rec.get("DueDate", ""),
@@ -144,16 +153,21 @@ def main():
         response_json = nexudus._mock_response(ENDPOINT)
         records = nexudus.extract_value(response_json)
         records = [r for r in records if r.get("Paid") is not True]
+        email_lookup = {}
     else:
         headers = nexudus.make_auth_header(config)
         records = nexudus.get_all(
             base_url, ENDPOINT, headers, size=args.size,
             extra_params={"CoworkerInvoice_Paid": "false"},
         )
+        print("Fetching member emails...", file=sys.stderr)
+        member_records = nexudus.get_all(base_url, MEMBERS_ENDPOINT, headers, size=args.size)
+        email_lookup = build_email_lookup(member_records)
+        print(f"Loaded {len(email_lookup)} member emails.", file=sys.stderr)
 
     print(f"Unpaid invoices: {len(records)}", file=sys.stderr)
 
-    rows = build_rows(records)
+    rows = build_rows(records, email_lookup)
 
     if args.sort == "value":
         rows.sort(key=lambda r: r["TotalAmount"], reverse=True)
