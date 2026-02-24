@@ -143,13 +143,15 @@ def main():
         print("Mock mode enabled — using local test data.", file=sys.stderr)
         response_json = nexudus._mock_response(ENDPOINT)
         records = nexudus.extract_value(response_json)
+        records = [r for r in records if r.get("Paid") is not True]
     else:
         headers = nexudus.make_auth_header(config)
-        records = nexudus.get_all(base_url, ENDPOINT, headers, size=args.size)
+        records = nexudus.get_all(
+            base_url, ENDPOINT, headers, size=args.size,
+            extra_params={"CoworkerInvoice_Paid": "false"},
+        )
 
-    before = len(records)
-    records = [r for r in records if r.get("Paid") is not True]
-    print(f"Unpaid invoices: {len(records)}/{before}", file=sys.stderr)
+    print(f"Unpaid invoices: {len(records)}", file=sys.stderr)
 
     rows = build_rows(records)
 
