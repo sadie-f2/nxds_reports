@@ -3,7 +3,9 @@
 report_active_memberships.py — Export active Nexudus contracts, optionally summarised by plan.
 
 Usage:
-    NEXUDUS_MOCK=1 python report_active_memberships.py               # flat list
+    NEXUDUS_MOCK=1 python report_active_memberships.py               # unique members (default)
+    NEXUDUS_MOCK=1 python report_active_memberships.py --all         # one row per contract
+    NEXUDUS_MOCK=1 python report_active_memberships.py --multiples   # members with 2+ contracts
     NEXUDUS_MOCK=1 python report_active_memberships.py --summary     # count by plan type
     NEXUDUS_MOCK=1 python report_active_memberships.py --file out.csv
     NEXUDUS_MOCK=1 python report_active_memberships.py --output excel --file out.xlsx
@@ -12,12 +14,13 @@ Usage:
 import argparse
 import csv
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 
 import openpyxl
 
 import nexudus
 
+COLUMNS_UNIQUE = ["CoworkerFullName", "CoworkerEmail", "ContractCount", "Plans", "EarliestStartDate"]
 COLUMNS_FLAT = ["Id", "CoworkerFullName", "CoworkerEmail", "TariffName", "StartDate"]
 COLUMNS_SUMMARY = ["TariffName", "MemberCount"]
 ENDPOINT = "/billing/coworkercontracts"
@@ -46,6 +49,16 @@ def parse_args():
         help="Page size for API requests (default: 100)",
     )
     parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Show all contracts (one row per contract, not deduplicated)",
+    )
+    parser.add_argument(
+        "--multiples",
+        action="store_true",
+        help="Show only members with two or more active contracts",
+    )
+    parser.add_argument(
         "--summary",
         action="store_true",
         help="Output a count of active members per plan type instead of the full list",
@@ -66,6 +79,31 @@ def build_flat_rows(records):
                 "StartDate": rec.get("StartDate", ""),
             }
         )
+    return rows
+
+
+def build_unique_rows(records, multiples_only=False):
+    """One row per member, with all active plan names concatenated."""
+    by_member = defaultdict(lambda: {"name": "", "plans": [], "starts": []})
+    for rec in records:
+        email = rec.get("CoworkerEmail", "")
+        by_member[email]["name"] = rec.get("CoworkerFullName", "")
+        by_member[email]["plans"].append(rec.get("TariffName", ""))
+        start = rec.get("StartDate", "")
+        if start:
+            by_member[email]["starts"].append(start)
+    rows = []
+    for email, data in by_member.items():
+        if multiples_only and len(data["plans"]) < 2:
+            continue
+        rows.append({
+            "CoworkerFullName": data["name"],
+            "CoworkerEmail": email,
+            "ContractCount": len(data["plans"]),
+            "Plans": "; ".join(data["plans"]),
+            "EarliestStartDate": min(data["starts"]) if data["starts"] else "",
+        })
+    rows.sort(key=lambda r: r["CoworkerFullName"])
     return rows
 
 
@@ -138,10 +176,20 @@ def main():
         rows = build_summary_rows(records)
         columns = COLUMNS_SUMMARY
         sheet_title = "Active by Plan"
-    else:
+    elif args.all:
         rows = build_flat_rows(records)
         columns = COLUMNS_FLAT
-        sheet_title = "Active Memberships"
+        sheet_title = "Active Memberships (All)"
+    elif args.multiples:
+        rows = build_unique_rows(records, multiples_only=True)
+        columns = COLUMNS_UNIQUE
+        sheet_title = "Multiple Contracts"
+        print(f"Members with 2+ contracts: {len(rows)}", file=sys.stderr)
+    else:
+        rows = build_unique_rows(records)
+        columns = COLUMNS_UNIQUE
+        sheet_title = "Active Members"
+        print(f"Unique members: {len(rows)}", file=sys.stderr)
 
     if args.output == "excel":
         write_excel(rows, columns, sheet_title, args.file)
