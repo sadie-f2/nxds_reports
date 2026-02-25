@@ -1,0 +1,39 @@
+{
+  "Records": [
+    {
+      "Id": 1001,
+      "BookingNumber": 101,
+      "CoworkerId": 1,
+      "CoworkerFullName": "Alice Member",
+      "ResourceId": 10,
+      "ResourceName": "DigiFab | Laser Cutter | Calico",
+      "ResourceResourceTypeName": "Tool",
+      "FromTime": "2026-02-01T14:00:00Z",
+      "ToTime": "2026-02-01T16:00:00Z"
+    },
+    {
+      "Id": 1002,
+      "BookingNumber": 102,
+      "CoworkerId": 2,
+      "CoworkerFullName": "Bob Builder",
+      "ResourceId": 11,
+      "ResourceName": "Wood Shop",
+      "ResourceResourceTypeName": "Tool",
+      "FromTime": "2026-02-03T10:00:00Z",
+      "ToTime": "2026-02-03T13:00:00Z"
+    },
+    {
+      "Id": 1003,
+      "BookingNumber": 103,
+      "CoworkerId": 3,
+      "CoworkerFullName": "Carol Welder",
+      "ResourceId": 12,
+      "ResourceName": "Metal Shop | CNC Plasma Cutter",
+      "ResourceResourceTypeName": "Tool",
+      "FromTime": "2026-02-10T09:00:00Z",
+      "ToTime": "2026-02-10T11:30:00Z"
+    }
+  ],
+  "HasNextPage": false,
+  "TotalItems": 3
+}

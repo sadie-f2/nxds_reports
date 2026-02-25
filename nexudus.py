@@ -82,6 +82,8 @@ def _mock_response(url):
         mock_file = MOCK_DATA_DIR / "coworkerinvoices_page1.json"
     elif "coworkers" in url:
         mock_file = MOCK_DATA_DIR / "coworkers_page1.json"
+    elif "bookings" in url:
+        mock_file = MOCK_DATA_DIR / "bookings_page1.json"
     else:
         # Generic empty response for unknown endpoints
         return {
