@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from report_new_memberships import build_rows, resolve_date_range, write_csv
+from report_new_contracts import build_rows, resolve_date_range, write_csv
 
 
 class TestResolveDateRange:
@@ -13,7 +13,7 @@ class TestResolveDateRange:
         args.from_date = None
         args.to_date = None
         args.days = 30
-        with patch("report_new_memberships.date") as mock_date:
+        with patch("report_new_contracts.date") as mock_date:
             mock_date.today.return_value = date(2026, 2, 22)
             from_str, to_str = resolve_date_range(args)
         assert from_str == "2026-01-23"
@@ -33,7 +33,7 @@ class TestResolveDateRange:
         args.from_date = None
         args.to_date = None
         args.days = 60
-        with patch("report_new_memberships.date") as mock_date:
+        with patch("report_new_contracts.date") as mock_date:
             mock_date.today.return_value = date(2026, 2, 22)
             from_str, to_str = resolve_date_range(args)
         assert from_str == "2025-12-24"
@@ -44,7 +44,7 @@ class TestResolveDateRange:
         args.from_date = "2026-01-15"
         args.to_date = None
         args.days = 30
-        with patch("report_new_memberships.date") as mock_date:
+        with patch("report_new_contracts.date") as mock_date:
             mock_date.today.return_value = date(2026, 2, 22)
             from_str, to_str = resolve_date_range(args)
         assert from_str == "2026-01-15"
