@@ -45,7 +45,7 @@ class TestMockResponse:
     def test_coworkercontract_url(self):
         result = nexudus._mock_response("/billing/coworkercontracts")
         assert result["WasSuccessful"] is True
-        assert len(result["Value"]) == 5
+        assert len(result["Value"]) == 6
 
     def test_coworkerinvoice_url(self):
         result = nexudus._mock_response("/billing/coworkerinvoices")

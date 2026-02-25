@@ -50,10 +50,20 @@
       "StartDate": "2025-06-01T00:00:00",
       "EndDate": null,
       "Active": false
+    },
+    {
+      "Id": 2006,
+      "CoworkerId": 1003,
+      "CoworkerFullName": "Carmen Reyes",
+      "CoworkerEmail": "carmen@example.com",
+      "TariffName": "Bike Shop Storage",
+      "StartDate": "2026-02-20T00:00:00",
+      "EndDate": null,
+      "Active": true
     }
   ],
   "CurrentPage": 1,
   "TotalPages": 1,
-  "TotalItems": 5,
+  "TotalItems": 6,
   "HasNextPage": false
 }
