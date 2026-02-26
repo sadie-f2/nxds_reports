@@ -90,8 +90,8 @@ def build_rows(records):
                 "CoworkerFullName": rec.get("CoworkerFullName", ""),
                 "CoworkerEmail": rec.get("CoworkerEmail", ""),
                 "TariffName": rec.get("TariffName", ""),
-                "StartDate": rec.get("StartDate", ""),
-                "EndDate": end,
+                "StartDate": (rec.get("StartDate") or "")[:10],
+                "EndDate": end[:10] if end else "",
             }
         )
     return rows

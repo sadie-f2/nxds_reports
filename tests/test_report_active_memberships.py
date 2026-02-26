@@ -84,7 +84,7 @@ class TestBuildUniqueRows:
         bob = next(r for r in rows if r["CoworkerEmail"] == "bob@example.com")
         assert bob["ContractCount"] == 1
         assert bob["Plans"] == "Dedicated Desk"
-        assert bob["EarliestStartDate"] == "2026-01-25T00:00:00"
+        assert bob["EarliestStartDate"] == "2026-01-25"
 
     def test_multiple_contracts_concatenated(self):
         rows = build_unique_rows(SAMPLE_RECORDS_WITH_MULTIPLES)
@@ -96,7 +96,7 @@ class TestBuildUniqueRows:
     def test_earliest_start_date(self):
         rows = build_unique_rows(SAMPLE_RECORDS_WITH_MULTIPLES)
         alice = next(r for r in rows if r["CoworkerEmail"] == "alice@example.com")
-        assert alice["EarliestStartDate"] == "2025-06-01T00:00:00"
+        assert alice["EarliestStartDate"] == "2025-06-01"
 
     def test_sorted_by_name(self):
         rows = build_unique_rows(SAMPLE_RECORDS)

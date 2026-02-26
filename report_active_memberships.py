@@ -76,7 +76,7 @@ def build_flat_rows(records):
                 "CoworkerFullName": rec.get("CoworkerFullName", ""),
                 "CoworkerEmail": rec.get("CoworkerEmail", ""),
                 "TariffName": rec.get("TariffName", ""),
-                "StartDate": rec.get("StartDate", ""),
+                "StartDate": (rec.get("StartDate") or "")[:10],
             }
         )
     return rows
@@ -101,7 +101,7 @@ def build_unique_rows(records, multiples_only=False):
             "CoworkerEmail": email,
             "ContractCount": len(data["plans"]),
             "Plans": "; ".join(data["plans"]),
-            "EarliestStartDate": min(data["starts"]) if data["starts"] else "",
+            "EarliestStartDate": min(data["starts"])[:10] if data["starts"] else "",
         })
     rows.sort(key=lambda r: r["CoworkerFullName"])
     return rows

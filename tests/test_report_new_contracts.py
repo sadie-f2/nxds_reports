@@ -69,8 +69,8 @@ class TestBuildRows:
         assert rows[0]["CoworkerFullName"] == "Alice Nguyen"
         assert rows[0]["CoworkerEmail"] == "alice@example.com"
         assert rows[0]["TariffName"] == "Hot Desk Monthly"
-        assert rows[0]["StartDate"] == "2026-02-10T00:00:00"
-        assert rows[0]["EndDate"] == "2026-12-31T00:00:00"
+        assert rows[0]["StartDate"] == "2026-02-10"
+        assert rows[0]["EndDate"] == "2026-12-31"
 
     def test_null_end_date(self):
         records = [

@@ -67,11 +67,11 @@ class TestExtractShop:
 class TestToEastern:
     def test_utc_to_est(self):
         # 18:15 UTC in winter = 13:15 EST (UTC-5)
-        assert to_eastern("2026-02-21T18:15:00Z") == "2026-02-21 13:15"
+        assert to_eastern("2026-02-21T18:15:00Z") == "2026-02-21 13:15 EST"
 
     def test_utc_to_edt(self):
         # 18:15 UTC in summer = 14:15 EDT (UTC-4)
-        assert to_eastern("2026-07-04T18:15:00Z") == "2026-07-04 14:15"
+        assert to_eastern("2026-07-04T18:15:00Z") == "2026-07-04 14:15 EDT"
 
     def test_empty_returns_empty(self):
         assert to_eastern("") == ""
@@ -83,8 +83,8 @@ class TestToEastern:
             "FromTime": "2026-02-21T18:15:00Z",
             "ToTime": "2026-02-21T20:00:00Z",
         }])
-        assert rows[0]["FromTime"] == "2026-02-21 13:15"
-        assert rows[0]["ToTime"] == "2026-02-21 15:00"
+        assert rows[0]["FromTime"] == "2026-02-21 13:15 EST"
+        assert rows[0]["ToTime"] == "2026-02-21 15:00 EST"
 
 
 class TestComputeDurationHours:

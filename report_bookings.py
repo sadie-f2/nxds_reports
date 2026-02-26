@@ -128,7 +128,8 @@ def to_eastern(utc_str):
     try:
         dt = datetime.fromisoformat(utc_str.rstrip("Z")).replace(tzinfo=timezone.utc)
         local = dt.astimezone(EASTERN)
-        return local.strftime("%Y-%m-%d %H:%M")
+        suffix = local.strftime("%Z")  # "EST" or "EDT"
+        return local.strftime("%Y-%m-%d %H:%M ") + suffix
     except ValueError:
         return utc_str
 
