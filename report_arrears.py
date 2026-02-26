@@ -28,7 +28,7 @@ COLUMNS = [
     "DaysOverdue",
 ]
 ENDPOINT = "/billing/coworkerinvoices"
-MEMBERS_ENDPOINT = "/spaces/coworkers"
+CONTRACTS_ENDPOINT = "/billing/coworkercontracts"
 
 
 def parse_args():
@@ -79,9 +79,15 @@ def compute_days_overdue(due_date):
     return max(0, (date.today() - due_date).days)
 
 
-def build_email_lookup(member_records):
-    """Build a CoworkerId -> email dict from coworker records."""
-    return {rec["Id"]: rec.get("Email", "") for rec in member_records if "Id" in rec}
+def build_email_lookup(contract_records):
+    """Build a CoworkerId -> email dict from active contract records."""
+    lookup = {}
+    for rec in contract_records:
+        cid = rec.get("CoworkerId")
+        email = rec.get("CoworkerEmail", "")
+        if cid and email and cid not in lookup:
+            lookup[cid] = email
+    return lookup
 
 
 def build_rows(records, email_lookup=None):
@@ -160,9 +166,12 @@ def main():
             base_url, ENDPOINT, headers, size=args.size,
             extra_params={"CoworkerInvoice_Paid": "false"},
         )
-        print("Fetching member emails...", file=sys.stderr)
-        member_records = nexudus.get_all(base_url, MEMBERS_ENDPOINT, headers, size=args.size)
-        email_lookup = build_email_lookup(member_records)
+        print("Fetching active contracts for email lookup...", file=sys.stderr)
+        contract_records = nexudus.get_all(
+            base_url, CONTRACTS_ENDPOINT, headers, size=args.size,
+            extra_params={"CoworkerContract_Active": "true"},
+        )
+        email_lookup = build_email_lookup(contract_records)
         print(f"Loaded {len(email_lookup)} member emails.", file=sys.stderr)
 
     print(f"Unpaid invoices: {len(records)}", file=sys.stderr)
