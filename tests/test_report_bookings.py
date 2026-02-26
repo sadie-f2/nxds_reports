@@ -44,8 +44,8 @@ SAMPLE_RECORDS = [
 ]
 
 SAMPLE_MEMBERS = [
-    {"Id": 10, "Email": "alice@example.com"},
-    {"Id": 20, "Email": "bob@example.com"},
+    {"CoworkerId": 10, "CoworkerEmail": "alice@example.com"},
+    {"CoworkerId": 20, "CoworkerEmail": "bob@example.com"},
 ]
 
 
@@ -81,14 +81,21 @@ class TestComputeDurationHours:
 
 
 class TestBuildEmailLookup:
-    def test_maps_id_to_email(self):
+    def test_maps_coworker_id_to_email(self):
         lookup = build_email_lookup(SAMPLE_MEMBERS)
         assert lookup[10] == "alice@example.com"
         assert lookup[20] == "bob@example.com"
 
-    def test_skips_records_without_id(self):
-        records = [{"Email": "noid@example.com"}]
+    def test_skips_records_without_coworker_id(self):
+        records = [{"CoworkerEmail": "noid@example.com"}]
         assert build_email_lookup(records) == {}
+
+    def test_deduplicates_same_member(self):
+        records = [
+            {"CoworkerId": 10, "CoworkerEmail": "alice@example.com"},
+            {"CoworkerId": 10, "CoworkerEmail": "alice@example.com"},
+        ]
+        assert len(build_email_lookup(records)) == 1
 
     def test_empty_records(self):
         assert build_email_lookup([]) == {}

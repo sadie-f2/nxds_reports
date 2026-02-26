@@ -41,7 +41,7 @@ SUMMARY_COLUMNS = [
 ]
 
 ENDPOINT = "/spaces/bookings"
-MEMBERS_ENDPOINT = "/spaces/coworkers"
+CONTRACTS_ENDPOINT = "/billing/coworkercontracts"
 
 
 def parse_args():
@@ -129,9 +129,15 @@ def compute_duration_hours(from_time_str, to_time_str):
         return ""
 
 
-def build_email_lookup(member_records):
-    """Build a CoworkerId -> email dict from coworker records."""
-    return {rec["Id"]: rec.get("Email", "") for rec in member_records if "Id" in rec}
+def build_email_lookup(contract_records):
+    """Build a CoworkerId -> email dict from active contract records."""
+    lookup = {}
+    for rec in contract_records:
+        cid = rec.get("CoworkerId")
+        email = rec.get("CoworkerEmail", "")
+        if cid and email and cid not in lookup:
+            lookup[cid] = email
+    return lookup
 
 
 def build_flat_rows(records, email_lookup=None):
@@ -234,10 +240,16 @@ def main():
                 "to_Booking_FromTime": to_str,
             },
         )
-        print("Fetching member emails...", file=sys.stderr)
-        member_records = nexudus.get_all(base_url, MEMBERS_ENDPOINT, headers, size=args.size)
-        email_lookup = build_email_lookup(member_records)
-        print(f"Loaded {len(email_lookup)} member emails.", file=sys.stderr)
+        print("Fetching active contracts for member filter and emails...", file=sys.stderr)
+        contract_records = nexudus.get_all(
+            base_url, CONTRACTS_ENDPOINT, headers, size=args.size,
+            extra_params={"CoworkerContract_Active": "true"},
+        )
+        email_lookup = build_email_lookup(contract_records)
+        active_member_ids = set(email_lookup.keys())
+        print(f"Active members: {len(active_member_ids)}", file=sys.stderr)
+        records = [r for r in records if r.get("CoworkerId") in active_member_ids]
+        print(f"Bookings by active members: {len(records)}", file=sys.stderr)
 
     print(f"Bookings fetched: {len(records)}", file=sys.stderr)
 
