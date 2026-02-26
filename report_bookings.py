@@ -5,6 +5,7 @@ report_bookings.py — Export Nexudus bookings over a time range.
 Usage:
     NEXUDUS_MOCK=1 python report_bookings.py                          # last 180 days, flat list
     NEXUDUS_MOCK=1 python report_bookings.py --days 90
+    NEXUDUS_MOCK=1 python report_bookings.py --days +30         # next 30 days
     NEXUDUS_MOCK=1 python report_bookings.py --from 2025-09-01 --to 2026-02-24
     NEXUDUS_MOCK=1 python report_bookings.py --summary                # group by resource
     NEXUDUS_MOCK=1 python report_bookings.py --resource "laser"       # filter by resource name
@@ -69,10 +70,10 @@ def parse_args():
     )
     parser.add_argument(
         "--days",
-        type=int,
-        default=180,
+        type=str,
+        default="180",
         metavar="N",
-        help="Number of days back from today (default: 180)",
+        help="Days back from today (default: 180). Prefix with + to look ahead, e.g. +30",
     )
     parser.add_argument(
         "--from",
@@ -100,15 +101,25 @@ def parse_args():
 
 
 def resolve_date_range(args):
-    """Return (from_date_str, to_date_str) as ISO 8601 strings."""
+    """Return (from_date_str, to_date_str) as ISO 8601 strings.
+
+    --days N   → last N days (from today-N to today)
+    --days +N  → next N days (from today to today+N)
+    --from/--to override --days entirely.
+    """
     today = date.today()
     if args.from_date or args.to_date:
-        from_str = args.from_date or (today - timedelta(days=args.days)).isoformat()
+        from_str = args.from_date or today.isoformat()
         to_str = args.to_date or today.isoformat()
+        return from_str, to_str
+
+    days_str = str(args.days).strip()
+    if days_str.startswith("+"):
+        n = int(days_str[1:])
+        return today.isoformat(), (today + timedelta(days=n)).isoformat()
     else:
-        from_str = (today - timedelta(days=args.days)).isoformat()
-        to_str = today.isoformat()
-    return from_str, to_str
+        n = int(days_str)
+        return (today - timedelta(days=n)).isoformat(), today.isoformat()
 
 
 def extract_shop(resource_name):

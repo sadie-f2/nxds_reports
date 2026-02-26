@@ -1,4 +1,7 @@
+import argparse
 import csv
+from datetime import date
+from unittest import mock
 
 import pytest
 
@@ -10,6 +13,7 @@ from report_bookings import (
     build_summary_rows,
     compute_duration_hours,
     extract_shop,
+    resolve_date_range,
     to_eastern,
     write_csv,
 )
@@ -48,6 +52,33 @@ SAMPLE_MEMBERS = [
     {"CoworkerId": 10, "CoworkerEmail": "alice@example.com"},
     {"CoworkerId": 20, "CoworkerEmail": "bob@example.com"},
 ]
+
+
+class TestResolveDateRange:
+    def _args(self, days="180", from_date=None, to_date=None):
+        return argparse.Namespace(days=days, from_date=from_date, to_date=to_date)
+
+    def test_look_back(self):
+        with mock.patch("report_bookings.date") as mock_date:
+            mock_date.today.return_value = date(2026, 3, 1)
+            mock_date.side_effect = lambda *a, **k: date(*a, **k)
+            from_str, to_str = resolve_date_range(self._args(days="30"))
+        assert from_str == "2026-01-30"
+        assert to_str == "2026-03-01"
+
+    def test_look_ahead(self):
+        with mock.patch("report_bookings.date") as mock_date:
+            mock_date.today.return_value = date(2026, 3, 1)
+            mock_date.side_effect = lambda *a, **k: date(*a, **k)
+            from_str, to_str = resolve_date_range(self._args(days="+14"))
+        assert from_str == "2026-03-01"
+        assert to_str == "2026-03-15"
+
+    def test_explicit_from_to(self):
+        args = self._args(from_date="2026-01-01", to_date="2026-01-31")
+        from_str, to_str = resolve_date_range(args)
+        assert from_str == "2026-01-01"
+        assert to_str == "2026-01-31"
 
 
 class TestExtractShop:
