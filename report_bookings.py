@@ -16,7 +16,8 @@ import argparse
 import csv
 import sys
 from collections import defaultdict
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 import openpyxl
 
@@ -117,6 +118,21 @@ def extract_shop(resource_name):
     return resource_name.strip()
 
 
+EASTERN = ZoneInfo("America/New_York")
+
+
+def to_eastern(utc_str):
+    """Convert a UTC ISO datetime string to Eastern time, formatted YYYY-MM-DD HH:MM."""
+    if not utc_str:
+        return ""
+    try:
+        dt = datetime.fromisoformat(utc_str.rstrip("Z")).replace(tzinfo=timezone.utc)
+        local = dt.astimezone(EASTERN)
+        return local.strftime("%Y-%m-%d %H:%M")
+    except ValueError:
+        return utc_str
+
+
 def compute_duration_hours(from_time_str, to_time_str):
     """Compute duration in hours between two ISO datetime strings."""
     if not from_time_str or not to_time_str:
@@ -156,8 +172,8 @@ def build_flat_rows(records, email_lookup=None):
             "BookingNumber": rec.get("BookingNumber", ""),
             "CoworkerFullName": rec.get("CoworkerFullName", ""),
             "CoworkerEmail": email_lookup.get(coworker_id, ""),
-            "FromTime": from_time,
-            "ToTime": to_time,
+            "FromTime": to_eastern(from_time),
+            "ToTime": to_eastern(to_time),
             "DurationHours": compute_duration_hours(from_time, to_time),
         })
     rows.sort(key=lambda r: (r["Shop"], r["ResourceName"], r["FromTime"]))

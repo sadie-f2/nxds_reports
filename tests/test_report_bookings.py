@@ -10,6 +10,7 @@ from report_bookings import (
     build_summary_rows,
     compute_duration_hours,
     extract_shop,
+    to_eastern,
     write_csv,
 )
 
@@ -61,6 +62,29 @@ class TestExtractShop:
 
     def test_empty_string(self):
         assert extract_shop("") == ""
+
+
+class TestToEastern:
+    def test_utc_to_est(self):
+        # 18:15 UTC in winter = 13:15 EST (UTC-5)
+        assert to_eastern("2026-02-21T18:15:00Z") == "2026-02-21 13:15"
+
+    def test_utc_to_edt(self):
+        # 18:15 UTC in summer = 14:15 EDT (UTC-4)
+        assert to_eastern("2026-07-04T18:15:00Z") == "2026-07-04 14:15"
+
+    def test_empty_returns_empty(self):
+        assert to_eastern("") == ""
+
+    def test_flat_rows_times_are_eastern(self):
+        rows = build_flat_rows([{
+            "Id": 1, "BookingNumber": 1, "CoworkerId": 1,
+            "CoworkerFullName": "Test", "ResourceName": "Shop",
+            "FromTime": "2026-02-21T18:15:00Z",
+            "ToTime": "2026-02-21T20:00:00Z",
+        }])
+        assert rows[0]["FromTime"] == "2026-02-21 13:15"
+        assert rows[0]["ToTime"] == "2026-02-21 15:00"
 
 
 class TestComputeDurationHours:
