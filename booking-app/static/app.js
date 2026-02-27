@@ -8,6 +8,73 @@
 let calendar;
 let allResources = [];
 let selectedMemberId = null;
+let currentUser = null;  // { id, name, email }
+
+// ── Identity / auth gate ──────────────────────────────────────────────────────
+
+function loadStoredIdentity() {
+  try {
+    const stored = localStorage.getItem("a2_user");
+    return stored ? JSON.parse(stored) : null;
+  } catch { return null; }
+}
+
+function storeIdentity(user) {
+  localStorage.setItem("a2_user", JSON.stringify(user));
+}
+
+function clearIdentity() {
+  localStorage.removeItem("a2_user");
+}
+
+async function submitIdentity() {
+  const email = document.getElementById("identity-email").value.trim();
+  const errEl = document.getElementById("identity-error");
+  errEl.style.display = "none";
+
+  if (!email) return;
+
+  try {
+    const resp = await fetch("/api/auth/identify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    if (resp.ok) {
+      const user = await resp.json();
+      currentUser = user;
+      storeIdentity(user);
+      applyIdentity(user);
+      document.getElementById("identity-gate").classList.remove("open");
+    } else {
+      errEl.textContent = "No active member found with that email. Please check and try again.";
+      errEl.style.display = "block";
+    }
+  } catch {
+    errEl.textContent = "Connection error — please try again.";
+    errEl.style.display = "block";
+  }
+}
+
+function applyIdentity(user) {
+  // Show greeting in header
+  document.getElementById("current-user").textContent = `${user.name} (sign out)`;
+  // Pre-fill the booking form member field
+  selectedMemberId = user.id;
+  document.getElementById("member-search").value = user.name;
+  document.getElementById("form-member-id").value = user.id;
+}
+
+function signOut() {
+  clearIdentity();
+  currentUser = null;
+  selectedMemberId = null;
+  document.getElementById("current-user").textContent = "";
+  document.getElementById("identity-email").value = "";
+  document.getElementById("identity-error").style.display = "none";
+  document.getElementById("identity-gate").classList.add("open");
+}
 
 // ── Utility ──────────────────────────────────────────────────────────────────
 
@@ -169,10 +236,17 @@ function populateStartTimes() {
 }
 
 function openModal() {
-  selectedMemberId = null;
-  document.getElementById("member-search").value = "";
+  // Pre-fill from current user, or clear for name search
+  if (currentUser) {
+    selectedMemberId = currentUser.id;
+    document.getElementById("member-search").value = currentUser.name;
+    document.getElementById("form-member-id").value = currentUser.id;
+  } else {
+    selectedMemberId = null;
+    document.getElementById("member-search").value = "";
+    document.getElementById("form-member-id").value = "";
+  }
   document.getElementById("member-results").style.display = "none";
-  document.getElementById("form-member-id").value = "";
   document.getElementById("form-date").value = todayStr();
   document.getElementById("status-msg").className = "";
   document.getElementById("status-msg").style.display = "none";
@@ -242,7 +316,7 @@ function showStatus(msg, type) {
 
 let memberSearchTimeout;
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const searchInput = document.getElementById("member-search");
   const resultsEl = document.getElementById("member-results");
 
@@ -291,7 +365,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
   populateStartTimes();
 
-  // Boot sequence
+  // Enter key on identity gate
+  document.getElementById("identity-email").addEventListener("keydown", e => {
+    if (e.key === "Enter") submitIdentity();
+  });
+
+  // Boot sequence — check config, then stored identity
+  const cfg = await fetch("/api/config").then(r => r.json());
+
+  if (cfg.email_gate) {
+    const stored = loadStoredIdentity();
+    if (stored) {
+      currentUser = stored;
+      applyIdentity(stored);
+      document.getElementById("identity-gate").classList.remove("open");
+    }
+    // else: gate stays open
+  } else {
+    // Email gate disabled — close it immediately
+    document.getElementById("identity-gate").classList.remove("open");
+  }
+
   loadResources().then(resources => {
     initCalendar(resources);
   });

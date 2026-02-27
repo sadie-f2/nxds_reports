@@ -15,6 +15,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 
+from .auth import router as auth_router
 from .resources import router as resources_router
 from .bookings import router as bookings_router
 from .availability import router as availability_router
@@ -30,6 +31,7 @@ app.add_middleware(
 )
 
 # API routes under /api prefix
+app.include_router(auth_router, prefix="/api")
 app.include_router(resources_router, prefix="/api")
 app.include_router(bookings_router, prefix="/api")
 app.include_router(availability_router, prefix="/api")
@@ -49,3 +51,11 @@ def index():
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/api/config")
+def config():
+    import os
+    return {
+        "email_gate": os.getenv("BOOKING_EMAIL_GATE", "0").strip() == "1",
+    }

@@ -187,13 +187,97 @@
 
     #status-msg.success { background: #d4edda; color: #155724; display: block; }
     #status-msg.error { background: #f8d7da; color: #721c24; display: block; }
+
+    /* Identity gate */
+    #identity-gate {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.6);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #identity-gate.open { display: flex; }
+
+    #identity-wrap {
+      background: #fff;
+      border-radius: 10px;
+      padding: 36px 32px;
+      width: 380px;
+      max-width: 95vw;
+      text-align: center;
+    }
+
+    #identity-wrap h2 { font-size: 1.1rem; margin-bottom: 8px; color: #1a1a2e; }
+    #identity-wrap p { font-size: 0.88rem; color: #666; margin-bottom: 24px; }
+
+    #identity-wrap input[type=email] {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+
+    #identity-wrap input[type=email]:focus {
+      outline: none;
+      border-color: #1a1a2e;
+    }
+
+    #identity-submit {
+      width: 100%;
+      padding: 11px;
+      background: #1a1a2e;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    #identity-submit:hover { background: #2d2d5e; }
+
+    #identity-error {
+      font-size: 0.85rem;
+      color: #721c24;
+      background: #f8d7da;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-top: 10px;
+      display: none;
+    }
+
+    /* Greeting in header */
+    #current-user {
+      margin-left: auto;
+      font-size: 0.85rem;
+      opacity: 0.8;
+      cursor: pointer;
+    }
+
+    #current-user:hover { opacity: 1; text-decoration: underline; }
   </style>
 </head>
 <body>
 
 <header>
   <h1>A² Equipment Bookings</h1>
+  <span id="current-user" onclick="signOut()" title="Click to sign out"></span>
 </header>
+
+<!-- Identity gate — shown on load if not identified -->
+<div id="identity-gate" class="open">
+  <div id="identity-wrap">
+    <h2>Welcome to A² Bookings</h2>
+    <p>Enter your member email address to continue.</p>
+    <input type="email" id="identity-email" placeholder="you@example.com" autocomplete="email" />
+    <button id="identity-submit" onclick="submitIdentity()">Continue</button>
+    <div id="identity-error"></div>
+  </div>
+</div>
 
 <div id="filter-bar">
   <label>Shop:

@@ -21,6 +21,21 @@ MOCK_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "mock_data"
 
 load_dotenv()
 
+# In-memory store for bookings created during mock mode. Seeded from the
+# static JSON file on first access, then kept in memory so new bookings
+# appear immediately without restarting the server.
+_mock_bookings: list[dict] | None = None
+_mock_next_id: int = 9000
+
+
+def _get_mock_bookings() -> list[dict]:
+    global _mock_bookings
+    if _mock_bookings is None:
+        path = MOCK_DATA_DIR / "bookings_page1.json"
+        with open(path) as f:
+            _mock_bookings = json.load(f).get("Records", [])
+    return _mock_bookings
+
 
 def _config() -> dict:
     return {
@@ -39,20 +54,27 @@ def _mock(url: str) -> dict:
     """Return canned JSON from mock_data/ based on URL."""
     if "resources" in url:
         path = MOCK_DATA_DIR / "resources_page1.json"
+        if not path.exists():
+            raise HTTPException(status_code=500, detail=f"Mock file not found: {path}")
+        with open(path) as f:
+            return json.load(f)
+    elif "bookings" in url:
+        records = _get_mock_bookings()
+        return {"Records": records, "HasNextPage": False, "TotalItems": len(records)}
     elif "coworkercontract" in url:
         path = MOCK_DATA_DIR / "coworkercontracts_page1.json"
-    elif "bookings" in url:
-        path = MOCK_DATA_DIR / "bookings_page1.json"
+        if not path.exists():
+            raise HTTPException(status_code=500, detail=f"Mock file not found: {path}")
+        with open(path) as f:
+            return json.load(f)
     elif "coworkers" in url:
         path = MOCK_DATA_DIR / "coworkers_page1.json"
+        if not path.exists():
+            raise HTTPException(status_code=500, detail=f"Mock file not found: {path}")
+        with open(path) as f:
+            return json.load(f)
     else:
         return {"Records": [], "HasNextPage": False, "TotalItems": 0}
-
-    if not path.exists():
-        raise HTTPException(status_code=500, detail=f"Mock file not found: {path}")
-
-    with open(path) as f:
-        return json.load(f)
 
 
 def _get(endpoint: str, params: Optional[dict] = None) -> dict:
@@ -132,15 +154,34 @@ def fetch_members() -> list[dict]:
 
 def post_booking(resource_id: int, member_id: int, from_time: str, to_time: str) -> dict:
     """Create a booking. Returns the created booking record."""
+    global _mock_next_id
     cfg = _config()
     if cfg["mock"]:
-        return {
-            "Id": 9999,
+        # Look up member name from mock contracts
+        contracts = _records(_mock("coworkercontract"))
+        member_name = next(
+            (c.get("CoworkerFullName", "") for c in contracts if c.get("CoworkerId") == member_id),
+            f"Member {member_id}",
+        )
+        # Look up resource name from mock resources
+        resources = _records(_mock("resources"))
+        resource_name = next(
+            (r.get("Name", "") for r in resources if r.get("Id") == resource_id),
+            f"Resource {resource_id}",
+        )
+        record = {
+            "Id": _mock_next_id,
+            "BookingNumber": _mock_next_id,
             "ResourceId": resource_id,
+            "ResourceName": resource_name,
             "CoworkerId": member_id,
+            "CoworkerFullName": member_name,
             "FromTime": from_time,
             "ToTime": to_time,
         }
+        _mock_next_id += 1
+        _get_mock_bookings().append(record)
+        return record
 
     url = cfg["base_url"] + "/spaces/bookings"
     payload = {
@@ -166,7 +207,11 @@ def delete_booking(booking_id: int) -> None:
     """Cancel a booking by ID."""
     cfg = _config()
     if cfg["mock"]:
-        return  # no-op in mock mode
+        bookings = _get_mock_bookings()
+        to_remove = [b for b in bookings if b.get("Id") == booking_id]
+        for b in to_remove:
+            bookings.remove(b)
+        return
 
     url = cfg["base_url"] + f"/spaces/bookings/{booking_id}"
     try:
