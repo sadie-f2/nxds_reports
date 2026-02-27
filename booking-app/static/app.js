@@ -133,6 +133,16 @@ function fmtFacilityDate(isoStr) {
   });
 }
 
+// Convert a JS Date to { dateStr: "YYYY-MM-DD", timeStr: "HH:MM" } in facilityTZ
+function facilityLocalParts(date) {
+  const dateStr = date.toLocaleDateString("en-CA", { timeZone: facilityTZ }); // YYYY-MM-DD
+  const timeStr = date.toLocaleTimeString("en-GB", {
+    timeZone: facilityTZ,
+    hour: "2-digit", minute: "2-digit",
+  }); // HH:MM
+  return { dateStr, timeStr };
+}
+
 
 // ── Resources ─────────────────────────────────────────────────────────────────
 
@@ -222,6 +232,10 @@ function initCalendar(resources) {
     resourceGroupField: "shop",
     events: fetchEvents,
     eventClick: onEventClick,
+    selectable: true,
+    selectMirror: true,
+    dateClick: onDateClick,
+    select: onSelect,
     height: "auto",
     nowIndicator: true,
   });
@@ -252,6 +266,23 @@ function onEventClick(info) {
 
 function closeDetail() {
   document.getElementById("detail-panel").style.display = "none";
+}
+
+// Click on a single cell → open modal pre-populated with resource + start time
+function onDateClick(info) {
+  const { dateStr, timeStr } = facilityLocalParts(info.date);
+  const resourceId = info.resource ? info.resource.id : null;
+  openModal({ resourceId, dateStr, startTime: timeStr });
+}
+
+// Drag across cells → open modal pre-populated with resource, start time, and duration
+function onSelect(info) {
+  const { dateStr, timeStr } = facilityLocalParts(info.start);
+  const durationMs = info.end - info.start;
+  const durationMinutes = Math.round(durationMs / 60000);
+  const resourceId = info.resource ? info.resource.id : null;
+  openModal({ resourceId, dateStr, startTime: timeStr, durationMinutes });
+  calendar.unselect();
 }
 
 // ── Booking form ──────────────────────────────────────────────────────────────
@@ -295,7 +326,8 @@ function getDurationMinutes() {
   return total;
 }
 
-function openModal() {
+// opts: optional { resourceId, dateStr, startTime, durationMinutes }
+function openModal(opts = {}) {
   // Pre-fill with current user; they can type to change to someone else
   if (currentUser) {
     selectedMemberId = currentUser.id;
@@ -307,9 +339,32 @@ function openModal() {
     document.getElementById("form-member-id").value = "";
   }
   document.getElementById("member-results").style.display = "none";
-  document.getElementById("form-duration").value = "60";
+
+  // Resource
+  if (opts.resourceId) {
+    document.getElementById("form-resource").value = String(opts.resourceId);
+  }
+
+  // Date
+  document.getElementById("form-date").value = opts.dateStr || todayStr();
+
+  // Start time — snap to nearest 30-min slot present in the select
+  if (opts.startTime) {
+    const [h, m] = opts.startTime.split(":").map(Number);
+    const snapped = m < 30
+      ? `${String(h).padStart(2, "0")}:00`
+      : `${String(h).padStart(2, "0")}:30`;
+    document.getElementById("form-start").value = snapped;
+  }
+
+  // Duration
+  const dur = opts.durationMinutes || 60;
+  const durSel = document.getElementById("form-duration");
+  // Use a preset option if it matches, otherwise fall back to 60 min
+  const presets = Array.from(durSel.options).map(o => parseInt(o.value)).filter(v => !isNaN(v));
+  durSel.value = presets.includes(dur) ? String(dur) : "60";
   document.getElementById("form-duration-custom").style.display = "none";
-  document.getElementById("form-date").value = todayStr();
+
   document.getElementById("status-msg").className = "";
   document.getElementById("status-msg").style.display = "none";
   document.getElementById("booking-modal").classList.add("open");
