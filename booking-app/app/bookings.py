@@ -34,10 +34,22 @@ if not _booking_log.handlers:
     _booking_log.addHandler(_handler)
 
 
-def _to_eastern(iso: str) -> datetime:
-    """Parse a UTC ISO string and return an Eastern-aware datetime."""
+def _parse_nexudus_dt(iso: str) -> datetime:
+    """Parse a Nexudus datetime string into a UTC-aware datetime.
+
+    Nexudus returns facility-local times without a timezone marker
+    (e.g. "2026-02-27T16:30:00"). Treat those as Eastern; honour an
+    explicit Z suffix if present.
+    """
     dt = datetime.fromisoformat(iso.replace("Z", "+00:00"))
-    return dt.astimezone(EASTERN)
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=EASTERN)
+    return dt.astimezone(timezone.utc)
+
+
+def _to_eastern(iso: str) -> datetime:
+    """Parse a Nexudus datetime string and return an Eastern-aware datetime."""
+    return _parse_nexudus_dt(iso).astimezone(EASTERN)
 
 
 def _duration_hours(from_iso: str, to_iso: str) -> float:
@@ -119,8 +131,8 @@ def check_conflicts(resource_id: int, from_time: datetime, to_time: datetime) ->
     for rec in records:
         if rec.get("ResourceId") != resource_id:
             continue
-        existing_from = datetime.fromisoformat(rec["FromTime"].replace("Z", "+00:00"))
-        existing_to = datetime.fromisoformat(rec["ToTime"].replace("Z", "+00:00"))
+        existing_from = _parse_nexudus_dt(rec["FromTime"])
+        existing_to = _parse_nexudus_dt(rec["ToTime"])
         if from_time < existing_to and existing_from < to_time:
             return True
     return False
@@ -165,8 +177,11 @@ def create_booking(req: CreateBookingRequest, request: Request):
 
     from_iso = req.from_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     to_iso = req.to_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    # Subtract 2 seconds so Nexudus doesn't treat adjacent bookings as conflicting
+    # (Nexudus uses non-strict boundary comparison: ToTime == FromTime → conflict)
+    to_nexudus = (req.to_time - timedelta(seconds=2)).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    result = nexudus.post_booking(req.resource_id, req.member_id, from_iso, to_iso, notes=notes)
+    result = nexudus.post_booking(req.resource_id, req.member_id, from_iso, to_nexudus, notes=notes)
 
     # Audit log
     duration_h = round(duration.total_seconds() / 3600, 2)
