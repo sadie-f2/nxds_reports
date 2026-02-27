@@ -4,11 +4,13 @@ POST /api/bookings       — create a booking
 DELETE /api/bookings/{id} — cancel a booking
 """
 
+import logging
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from typing import Optional
 from zoneinfo import ZoneInfo
 
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, HTTPException, Request, Query
 
 from . import cache, nexudus
 from .models import Booking, CreateBookingRequest
@@ -18,6 +20,18 @@ router = APIRouter()
 
 EASTERN = ZoneInfo("America/New_York")
 CACHE_TTL = 60  # bookings cache is short — 1 minute
+MAX_DURATION_HOURS = 23
+
+# Booking audit log — one line per booking, appended to logs/bookings.log
+_log_path = Path(__file__).parent.parent / "logs" / "bookings.log"
+_log_path.parent.mkdir(exist_ok=True)
+
+_booking_log = logging.getLogger("booking_audit")
+_booking_log.setLevel(logging.INFO)
+if not _booking_log.handlers:
+    _handler = logging.FileHandler(_log_path)
+    _handler.setFormatter(logging.Formatter("%(asctime)s | %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
+    _booking_log.addHandler(_handler)
 
 
 def _to_eastern(iso: str) -> datetime:
@@ -75,7 +89,6 @@ def list_bookings(
         else from_date + timedelta(days=7)
     )
 
-    # Convert Eastern dates to UTC ISO for Nexudus filter
     from_utc = datetime(from_date.year, from_date.month, from_date.day, tzinfo=EASTERN).astimezone(timezone.utc).isoformat()
     to_utc = datetime(to_date.year, to_date.month, to_date.day, 23, 59, 59, tzinfo=EASTERN).astimezone(timezone.utc).isoformat()
 
@@ -96,11 +109,46 @@ def list_bookings(
 
 
 @router.post("/bookings", response_model=dict, status_code=201)
-def create_booking(req: CreateBookingRequest):
+def create_booking(req: CreateBookingRequest, request: Request):
+    # Duration validation
+    duration = req.to_time - req.from_time
+    if duration.total_seconds() <= 0:
+        raise HTTPException(status_code=400, detail="End time must be after start time.")
+    if duration.total_seconds() > MAX_DURATION_HOURS * 3600:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Bookings cannot exceed {MAX_DURATION_HOURS} hours.",
+        )
+
+    # Determine IP (handle proxies)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    ip = forwarded_for.split(",")[0].strip() if forwarded_for else (request.client.host if request.client else "unknown")
+
+    # Build on-behalf-of note
+    on_behalf = (
+        req.booked_by_id is not None
+        and req.booked_by_id != req.member_id
+    )
+    if on_behalf:
+        notes = f"Booked by {req.booked_by_name} on behalf of {req.member_name} | IP: {ip}"
+    else:
+        notes = f"IP: {ip}"
+
     from_iso = req.from_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     to_iso = req.to_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    result = nexudus.post_booking(req.resource_id, req.member_id, from_iso, to_iso)
-    # Invalidate bookings cache so next read reflects the new booking
+
+    result = nexudus.post_booking(req.resource_id, req.member_id, from_iso, to_iso, notes=notes)
+
+    # Audit log
+    duration_h = round(duration.total_seconds() / 3600, 2)
+    if on_behalf:
+        who = f"{req.booked_by_name} (id={req.booked_by_id}) on behalf of {req.member_name} (id={req.member_id})"
+    else:
+        who = f"{req.member_name} (id={req.member_id})"
+    _booking_log.info(
+        f"IP={ip} | {who} | resource_id={req.resource_id} | {from_iso} → {to_iso} | {duration_h}h | booking_id={result.get('Id')}"
+    )
+
     cache.clear_all()
     return {"ok": True, "id": result.get("Id")}
 

@@ -152,7 +152,7 @@ def fetch_members() -> list[dict]:
     )
 
 
-def post_booking(resource_id: int, member_id: int, from_time: str, to_time: str) -> dict:
+def post_booking(resource_id: int, member_id: int, from_time: str, to_time: str, notes: str = "") -> dict:
     """Create a booking. Returns the created booking record."""
     global _mock_next_id
     cfg = _config()
@@ -178,6 +178,7 @@ def post_booking(resource_id: int, member_id: int, from_time: str, to_time: str)
             "CoworkerFullName": member_name,
             "FromTime": from_time,
             "ToTime": to_time,
+            "Notes": notes,
         }
         _mock_next_id += 1
         _get_mock_bookings().append(record)
@@ -189,6 +190,7 @@ def post_booking(resource_id: int, member_id: int, from_time: str, to_time: str)
         "CoworkerId": member_id,
         "FromTime": from_time,
         "ToTime": to_time,
+        "Notes": notes,
     }
     try:
         resp = requests.post(url, headers=_headers(), json=payload, timeout=30)

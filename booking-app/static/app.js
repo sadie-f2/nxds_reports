@@ -235,8 +235,26 @@ function populateStartTimes() {
   sel.value = nextHour;
 }
 
+function onDurationChange() {
+  const sel = document.getElementById("form-duration");
+  const custom = document.getElementById("form-duration-custom");
+  custom.style.display = sel.value === "custom" ? "block" : "none";
+  if (sel.value === "custom") custom.focus();
+}
+
+function getDurationMinutes() {
+  const sel = document.getElementById("form-duration");
+  if (sel.value !== "custom") return parseInt(sel.value);
+  const raw = document.getElementById("form-duration-custom").value.trim();
+  const match = raw.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return null;
+  const total = parseInt(match[1]) * 60 + parseInt(match[2]);
+  if (total <= 0 || total > 23 * 60) return null;
+  return total;
+}
+
 function openModal() {
-  // Pre-fill from current user, or clear for name search
+  // Pre-fill with current user; they can type to change to someone else
   if (currentUser) {
     selectedMemberId = currentUser.id;
     document.getElementById("member-search").value = currentUser.name;
@@ -247,6 +265,8 @@ function openModal() {
     document.getElementById("form-member-id").value = "";
   }
   document.getElementById("member-results").style.display = "none";
+  document.getElementById("form-duration").value = "60";
+  document.getElementById("form-duration-custom").style.display = "none";
   document.getElementById("form-date").value = todayStr();
   document.getElementById("status-msg").className = "";
   document.getElementById("status-msg").style.display = "none";
@@ -261,7 +281,6 @@ async function submitBooking() {
   const resourceId = parseInt(document.getElementById("form-resource").value);
   const date = document.getElementById("form-date").value;
   const startTime = document.getElementById("form-start").value;
-  const durationMin = parseInt(document.getElementById("form-duration").value);
   const memberId = parseInt(document.getElementById("form-member-id").value);
 
   if (!memberId) {
@@ -273,14 +292,27 @@ async function submitBooking() {
     return;
   }
 
+  const durationMin = getDurationMinutes();
+  if (!durationMin) {
+    showStatus("Please enter a valid duration (HH:MM, max 23:00).", "error");
+    return;
+  }
+
   const fromDt = new Date(`${date}T${startTime}:00`);
   const toDt = new Date(fromDt.getTime() + durationMin * 60000);
+
+  // Detect on-behalf-of
+  const onBehalf = currentUser && currentUser.id !== memberId;
+  const memberName = document.getElementById("member-search").value;
 
   const payload = {
     resource_id: resourceId,
     member_id: memberId,
+    member_name: memberName,
     from_time: fromDt.toISOString(),
     to_time: toDt.toISOString(),
+    booked_by_id: currentUser ? currentUser.id : null,
+    booked_by_name: currentUser ? currentUser.name : null,
   };
 
   try {

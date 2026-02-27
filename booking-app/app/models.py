@@ -41,5 +41,8 @@ class MemberResult(BaseModel):
 class CreateBookingRequest(BaseModel):
     resource_id: int
     member_id: int
+    member_name: Optional[str] = None   # for logging
     from_time: datetime
     to_time: datetime
+    booked_by_id: Optional[int] = None    # set when booking on behalf of another member
+    booked_by_name: Optional[str] = None

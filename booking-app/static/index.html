@@ -325,18 +325,24 @@
 
     <div class="form-group">
       <label>Duration</label>
-      <select id="form-duration">
+      <select id="form-duration" onchange="onDurationChange()">
         <option value="30">30 minutes</option>
         <option value="60" selected>1 hour</option>
         <option value="90">1.5 hours</option>
         <option value="120">2 hours</option>
         <option value="180">3 hours</option>
         <option value="240">4 hours</option>
+        <option value="480">8 hours</option>
+        <option value="720">12 hours</option>
+        <option value="1380">23 hours</option>
+        <option value="custom">Custom…</option>
       </select>
+      <input type="text" id="form-duration-custom" placeholder="HH:MM (max 23:00)"
+             style="display:none; margin-top:6px; width:100%; padding:8px 10px; border:1px solid #ccc; border-radius:4px; font-size:0.9rem;" />
     </div>
 
     <div class="form-group">
-      <label>Member name</label>
+      <label>Booking for</label>
       <input type="text" id="member-search" placeholder="Start typing a name…" autocomplete="off" />
       <div id="member-results"></div>
       <input type="hidden" id="form-member-id" />
