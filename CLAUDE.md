@@ -4,7 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repository is for Nexudus reporting — fetching data from the [Nexudus](https://www.nexudus.com/) coworking platform API and generating reports as CSV or Excel.
+This repository contains two things:
+- **`reports/`** — CLI scripts that fetch data from the [Nexudus](https://www.nexudus.com/) coworking platform API and generate reports as CSV or Excel
+- **`booking-app/`** — Web app for viewing and booking resources (in development)
 
 ## Technology Stack
 
@@ -36,55 +38,65 @@ Required env vars (see `.env.example`):
 
 ## Running Reports
 
+All report scripts live in `reports/`. Run from the repo root:
+
 ```bash
 # Members
-NEXUDUS_MOCK=1 python report_members.py
-NEXUDUS_MOCK=1 python report_members.py --file /tmp/members.csv
-NEXUDUS_MOCK=1 python report_members.py --output excel --file /tmp/members.xlsx
-NEXUDUS_MOCK=1 python report_members.py --active-only
-python report_members.py --file members.csv   # real credentials from .env
+NEXUDUS_MOCK=1 python reports/report_members.py
+NEXUDUS_MOCK=1 python reports/report_members.py --file /tmp/members.csv
+NEXUDUS_MOCK=1 python reports/report_members.py --output excel --file /tmp/members.xlsx
+NEXUDUS_MOCK=1 python reports/report_members.py --active-only
+python reports/report_members.py --file members.csv   # real credentials from .env
 
 # New memberships — last 30 days (default)
-NEXUDUS_MOCK=1 python report_new_memberships.py
+NEXUDUS_MOCK=1 python reports/report_new_memberships.py
 # New memberships — custom range
-NEXUDUS_MOCK=1 python report_new_memberships.py --from 2026-01-01 --to 2026-02-22
+NEXUDUS_MOCK=1 python reports/report_new_memberships.py --from 2026-01-01 --to 2026-02-22
 # New memberships — custom lookback window
-NEXUDUS_MOCK=1 python report_new_memberships.py --days 60
+NEXUDUS_MOCK=1 python reports/report_new_memberships.py --days 60
 
 # Active memberships — flat list
-NEXUDUS_MOCK=1 python report_active_memberships.py
+NEXUDUS_MOCK=1 python reports/report_active_memberships.py
 # Active memberships — summary by plan type
-NEXUDUS_MOCK=1 python report_active_memberships.py --summary
+NEXUDUS_MOCK=1 python reports/report_active_memberships.py --summary
 
 # Arrears — sorted by age (oldest overdue first, default)
-NEXUDUS_MOCK=1 python report_arrears.py
+NEXUDUS_MOCK=1 python reports/report_arrears.py
 # Arrears — sorted by value (largest amount first)
-NEXUDUS_MOCK=1 python report_arrears.py --sort value
+NEXUDUS_MOCK=1 python reports/report_arrears.py --sort value
 # Arrears — Excel output
-NEXUDUS_MOCK=1 python report_arrears.py --output excel --file /tmp/arrears.xlsx
+NEXUDUS_MOCK=1 python reports/report_arrears.py --output excel --file /tmp/arrears.xlsx
 ```
 
 ## Project Structure
 
 ```
 nexudus.py                    # Core API client (load_config, api_get, get_all, etc.)
-report_members.py             # Member/coworker report
-report_new_memberships.py     # New contracts over a date range
-report_active_memberships.py  # Active contracts (flat list or --summary by plan type)
-report_arrears.py             # Unpaid invoices sorted by age or value
 mock_data/                    # Canned API responses for NEXUDUS_MOCK=1
 requirements.txt
 .env.example
+reports/
+  report_members.py             # Member/coworker report
+  report_new_memberships.py     # New members (first-ever contract) in a date range
+  report_new_contracts.py       # All new/changed contracts in a date range
+  report_active_memberships.py  # Active contracts (flat list or --summary by plan type)
+  report_arrears.py             # Unpaid invoices sorted by age or value
+  report_bookings.py            # Equipment bookings over a time range
+  report_day_passes.py          # Day pass member purchase activity
+  report_left_recent.py         # Recently lapsed members (win-back list)
+  report_studio_deposits.py     # Security deposits for current studio renters
+  tests/                        # pytest suite
+booking-app/                  # Web app for viewing and booking resources (in development)
 ```
 
 ## Running Tests
 
 ```bash
 # Run all tests
-pytest tests/ -v
+pytest reports/tests/ -v
 
 # With coverage (requires pytest-cov)
-pytest tests/ -v --cov=. --cov-report=term-missing
+pytest reports/tests/ -v --cov=reports --cov-report=term-missing
 ```
 
 Tests use mock data only — no credentials required.
@@ -96,4 +108,4 @@ Tests use mock data only — no credentials required.
 - **Exit on error**: API errors call `sys.exit(1)` after printing to stderr
 - **Pagination**: use `nexudus.get_all()` which loops on `HasNextPage`
 - **Mock mode**: check `config["mock"]` and call `nexudus._mock_response()` instead of making HTTP requests
-- **New reports**: follow `report_members.py` as the template — argparse → load_config → fetch → filter → output
+- **New reports**: follow `reports/report_members.py` as the template — argparse → load_config → fetch → filter → output
