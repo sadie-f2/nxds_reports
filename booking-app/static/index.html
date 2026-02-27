@@ -250,22 +250,40 @@
       display: none;
     }
 
-    /* Greeting in header */
-    #current-user {
+    /* Identity controls in header */
+    #identity-controls {
       margin-left: auto;
       font-size: 0.85rem;
+    }
+
+    #current-user {
       opacity: 0.8;
       cursor: pointer;
     }
 
     #current-user:hover { opacity: 1; text-decoration: underline; }
+
+    #signin-btn {
+      background: rgba(255,255,255,0.15);
+      border: 1px solid rgba(255,255,255,0.4);
+      color: #fff;
+      padding: 4px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    #signin-btn:hover { background: rgba(255,255,255,0.25); }
   </style>
 </head>
 <body>
 
 <header>
   <h1>A² Equipment Bookings</h1>
-  <span id="current-user" onclick="signOut()" title="Click to sign out"></span>
+  <div id="identity-controls">
+    <span id="current-user" onclick="signOut()" title="Click to sign out" style="display:none"></span>
+    <button id="signin-btn" onclick="openIdentityGate()" style="display:none">Sign in</button>
+  </div>
 </header>
 
 <!-- Identity gate — shown on load if not identified -->

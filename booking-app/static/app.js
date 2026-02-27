@@ -8,7 +8,8 @@
 let calendar;
 let allResources = [];
 let selectedMemberId = null;
-let currentUser = null;  // { id, name, email }
+let currentUser = null;   // { id, name, email }
+let facilityTZ = "America/New_York";  // overridden from /api/config
 
 // ── Identity / auth gate ──────────────────────────────────────────────────────
 
@@ -58,39 +59,75 @@ async function submitIdentity() {
 }
 
 function applyIdentity(user) {
-  // Show greeting in header
-  document.getElementById("current-user").textContent = `${user.name} (sign out)`;
-  // Pre-fill the booking form member field
+  const userEl = document.getElementById("current-user");
+  const signinEl = document.getElementById("signin-btn");
+  userEl.textContent = `${user.name} (sign out)`;
+  userEl.style.display = "inline";
+  signinEl.style.display = "none";
   selectedMemberId = user.id;
-  document.getElementById("member-search").value = user.name;
-  document.getElementById("form-member-id").value = user.id;
 }
 
 function signOut() {
   clearIdentity();
   currentUser = null;
   selectedMemberId = null;
-  document.getElementById("current-user").textContent = "";
+  document.getElementById("current-user").style.display = "none";
   document.getElementById("identity-email").value = "";
   document.getElementById("identity-error").style.display = "none";
+  // If gate is mandatory, reopen it; otherwise show Sign in button
+  if (document.getElementById("identity-gate").dataset.mandatory === "1") {
+    document.getElementById("identity-gate").classList.add("open");
+  } else {
+    document.getElementById("signin-btn").style.display = "inline";
+  }
+}
+
+function openIdentityGate() {
+  document.getElementById("identity-error").style.display = "none";
   document.getElementById("identity-gate").classList.add("open");
+  setTimeout(() => document.getElementById("identity-email").focus(), 50);
 }
 
 // ── Utility ──────────────────────────────────────────────────────────────────
 
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  // Today's date in the facility timezone
+  return new Date().toLocaleDateString("en-CA", { timeZone: facilityTZ });
 }
 
-function fmtTime(isoStr) {
-  const dt = new Date(isoStr);
-  return dt.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit", timeZoneName: "short" });
+function facilityDatetimeToISO(dateStr, timeStr) {
+  // Convert a date+time string assumed to be in facilityTZ to a UTC ISO string.
+  // Uses Intl to determine the correct UTC offset (handles DST automatically).
+  const probe = new Date(`${dateStr}T12:00:00Z`);
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: facilityTZ,
+    timeZoneName: "shortOffset",
+  }).formatToParts(probe);
+  const tzPart = parts.find(p => p.type === "timeZoneName")?.value || "GMT-5";
+  const match = tzPart.match(/GMT([+-])(\d+)(?::(\d+))?/);
+  const sign = match?.[1] === "-" ? -1 : 1;
+  const offsetMin = sign * (parseInt(match?.[2] || "5") * 60 + parseInt(match?.[3] || "0"));
+  // Build ISO with explicit offset so the browser doesn't guess
+  const offsetSign = offsetMin <= 0 ? "+" : "-";
+  const absMin = Math.abs(offsetMin);
+  const offsetStr = `${offsetSign}${String(Math.floor(absMin / 60)).padStart(2, "0")}:${String(absMin % 60).padStart(2, "0")}`;
+  return new Date(`${dateStr}T${timeStr}:00${offsetStr}`).toISOString();
 }
 
-function fmtDate(isoStr) {
-  const dt = new Date(isoStr);
-  return dt.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric" });
+function fmtFacilityTime(isoStr) {
+  return new Date(isoStr).toLocaleTimeString("en-US", {
+    timeZone: facilityTZ,
+    hour: "numeric", minute: "2-digit", timeZoneName: "short",
+  });
 }
+
+function fmtFacilityDate(isoStr) {
+  return new Date(isoStr).toLocaleDateString("en-US", {
+    timeZone: facilityTZ,
+    weekday: "short", month: "short", day: "numeric",
+  });
+}
+
 
 // ── Resources ─────────────────────────────────────────────────────────────────
 
@@ -200,9 +237,9 @@ function onEventClick(info) {
   const b = info.event.extendedProps.booking;
   document.getElementById("d-resource").textContent = b.resource_name;
   document.getElementById("d-member").textContent = b.member_name;
-  document.getElementById("d-date").textContent = fmtDate(b.from_time);
+  document.getElementById("d-date").textContent = fmtFacilityDate(b.from_time);
   document.getElementById("d-time").textContent =
-    `${fmtTime(b.from_time)} – ${fmtTime(b.to_time)}`;
+    `${fmtFacilityTime(b.from_time)} – ${fmtFacilityTime(b.to_time)}`;
   document.getElementById("d-duration").textContent =
     `${b.duration_hours} hr${b.duration_hours !== 1 ? "s" : ""}`;
   document.getElementById("detail-panel").style.display = "block";
@@ -298,7 +335,8 @@ async function submitBooking() {
     return;
   }
 
-  const fromDt = new Date(`${date}T${startTime}:00`);
+  const fromISO = facilityDatetimeToISO(date, startTime);
+  const fromDt = new Date(fromISO);
   const toDt = new Date(fromDt.getTime() + durationMin * 60000);
 
   // Detect on-behalf-of
@@ -402,20 +440,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (e.key === "Enter") submitIdentity();
   });
 
-  // Boot sequence — check config, then stored identity
+  // Boot sequence — fetch config, then handle identity
   const cfg = await fetch("/api/config").then(r => r.json());
+  facilityTZ = cfg.timezone || "America/New_York";
 
   if (cfg.email_gate) {
-    const stored = loadStoredIdentity();
-    if (stored) {
-      currentUser = stored;
-      applyIdentity(stored);
-      document.getElementById("identity-gate").classList.remove("open");
-    }
-    // else: gate stays open
-  } else {
-    // Email gate disabled — close it immediately
+    document.getElementById("identity-gate").dataset.mandatory = "1";
+  }
+
+  const stored = loadStoredIdentity();
+  if (stored) {
+    currentUser = stored;
+    applyIdentity(stored);
     document.getElementById("identity-gate").classList.remove("open");
+  } else if (cfg.email_gate) {
+    // Gate is mandatory — leave it open, no sign-in button needed
+  } else {
+    // Gate is optional — close it, show Sign in button
+    document.getElementById("identity-gate").classList.remove("open");
+    document.getElementById("signin-btn").style.display = "inline";
   }
 
   loadResources().then(resources => {

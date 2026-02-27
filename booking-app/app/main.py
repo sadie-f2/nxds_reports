@@ -58,4 +58,8 @@ def config():
     import os
     return {
         "email_gate": os.getenv("BOOKING_EMAIL_GATE", "0").strip() == "1",
+        # IANA timezone name for displaying and submitting booking times.
+        # Defaults to America/New_York. Override in .env for other facilities.
+        # Future: auto-detect from Nexudus space record (SimpleTimeZoneId field).
+        "timezone": os.getenv("BOOKING_TIMEZONE", "America/New_York"),
     }
