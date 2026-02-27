@@ -124,10 +124,13 @@ def check_conflicts(resource_id: int, from_time: datetime, to_time: datetime) ->
     """Return True if any existing booking for resource_id overlaps [from_time, to_time).
 
     Overlap condition: a_start < b_end AND b_start < a_end
+
+    Fetch window starts 24 hours before from_time so bookings that began
+    before our window but extend into it are not missed.
     """
-    from_iso = from_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    fetch_from = (from_time - timedelta(hours=24)).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     to_iso = to_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    records = nexudus.fetch_bookings(from_iso, to_iso, resource_id)
+    records = nexudus.fetch_bookings(fetch_from, to_iso, resource_id)
     for rec in records:
         if rec.get("ResourceId") != resource_id:
             continue
@@ -177,11 +180,8 @@ def create_booking(req: CreateBookingRequest, request: Request):
 
     from_iso = req.from_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     to_iso = req.to_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-    # Subtract 2 seconds so Nexudus doesn't treat adjacent bookings as conflicting
-    # (Nexudus uses non-strict boundary comparison: ToTime == FromTime → conflict)
-    to_nexudus = (req.to_time - timedelta(seconds=2)).astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
-    result = nexudus.post_booking(req.resource_id, req.member_id, from_iso, to_nexudus, notes=notes)
+    result = nexudus.post_booking(req.resource_id, req.member_id, from_iso, to_iso, notes=notes)
 
     # Audit log
     duration_h = round(duration.total_seconds() / 3600, 2)

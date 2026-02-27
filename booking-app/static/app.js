@@ -9,6 +9,7 @@ let calendar;
 let allResources = [];
 let selectedMemberId = null;
 let currentUser = null;   // { id, name, email }
+let _pendingBookingOpts = null;  // stashed opts when identity gate interrupts openModal
 let facilityTZ = "America/New_York";  // overridden from /api/config
 
 // ── Identity / auth gate ──────────────────────────────────────────────────────
@@ -48,6 +49,11 @@ async function submitIdentity() {
       storeIdentity(user);
       applyIdentity(user);
       document.getElementById("identity-gate").classList.remove("open");
+      if (_pendingBookingOpts !== null) {
+        const opts = _pendingBookingOpts;
+        _pendingBookingOpts = null;
+        openModal(opts);
+      }
     } else {
       errEl.textContent = "No active member found with that email. Please check and try again.";
       errEl.style.display = "block";
@@ -326,6 +332,13 @@ function getDurationMinutes() {
 
 // opts: optional { resourceId, dateStr, startTime, durationMinutes }
 function openModal(opts = {}) {
+  // Require identity before booking — open gate and resume after sign-in
+  if (!currentUser) {
+    _pendingBookingOpts = opts;
+    openIdentityGate();
+    return;
+  }
+
   // Pre-fill with current user; they can type to change to someone else
   if (currentUser) {
     selectedMemberId = currentUser.id;

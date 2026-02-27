@@ -202,7 +202,11 @@ def post_booking(resource_id: int, member_id: int, from_time: str, to_time: str,
     resp = _request("POST", url, json=payload)
     if not resp.ok:
         raise HTTPException(status_code=resp.status_code, detail=f"Nexudus booking creation failed: {resp.text}")
-    return resp.json()
+    data = resp.json()
+    if not data.get("WasSuccessful", True):
+        raise HTTPException(status_code=400, detail=f"Nexudus booking creation failed: {resp.text}")
+    # Nexudus wraps the created record in {"WasSuccessful": true, "Value": {...}}
+    return data.get("Value") or data
 
 
 def delete_booking(booking_id: int) -> None:
