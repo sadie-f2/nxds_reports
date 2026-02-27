@@ -45,9 +45,12 @@ def _config() -> dict:
     }
 
 
-def _headers() -> dict:
+def _auth_kwargs() -> dict:
+    """Return requests kwargs for auth — bearer token if set, else basic auth."""
     token = os.getenv("NEXUDUS_BOOKING_TOKEN", "")
-    return {"Authorization": f"Bearer {token}"}
+    if token:
+        return {"headers": {"Authorization": f"Bearer {token}"}}
+    return {"auth": (os.getenv("NEXUDUS_EMAIL", ""), os.getenv("NEXUDUS_PASSWORD", ""))}
 
 
 def _mock(url: str) -> dict:
@@ -79,9 +82,10 @@ def _mock(url: str) -> dict:
 
 def _request(method: str, url: str, **kwargs) -> requests.Response:
     """Make an HTTP request with one 429 retry. Raises HTTPException on failure."""
+    auth = _auth_kwargs()
     for attempt in range(2):
         try:
-            resp = requests.request(method, url, headers=_headers(), timeout=30, **kwargs)
+            resp = requests.request(method, url, timeout=30, **auth, **kwargs)
         except requests.RequestException as exc:
             raise HTTPException(status_code=502, detail=f"Nexudus request failed: {exc}")
 
