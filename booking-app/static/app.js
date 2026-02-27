@@ -96,22 +96,27 @@ function todayStr() {
 }
 
 function facilityDatetimeToISO(dateStr, timeStr) {
-  // Convert a date+time string assumed to be in facilityTZ to a UTC ISO string.
-  // Uses Intl to determine the correct UTC offset (handles DST automatically).
-  const probe = new Date(`${dateStr}T12:00:00Z`);
-  const parts = new Intl.DateTimeFormat("en-US", {
+  // Convert a naive date+time (in facilityTZ) to a UTC ISO string.
+  //
+  // Strategy: treat the input as UTC (initial guess), ask Intl what local time
+  // that UTC maps to in facilityTZ, then shift by the difference. Handles DST
+  // automatically without any sign arithmetic.
+  const utcGuess = new Date(`${dateStr}T${timeStr}:00Z`);
+
+  // What local time does our UTC guess correspond to in facilityTZ?
+  const localStr = utcGuess.toLocaleString("en-CA", {
     timeZone: facilityTZ,
-    timeZoneName: "shortOffset",
-  }).formatToParts(probe);
-  const tzPart = parts.find(p => p.type === "timeZoneName")?.value || "GMT-5";
-  const match = tzPart.match(/GMT([+-])(\d+)(?::(\d+))?/);
-  const sign = match?.[1] === "-" ? -1 : 1;
-  const offsetMin = sign * (parseInt(match?.[2] || "5") * 60 + parseInt(match?.[3] || "0"));
-  // Build ISO with explicit offset so the browser doesn't guess
-  const offsetSign = offsetMin <= 0 ? "+" : "-";
-  const absMin = Math.abs(offsetMin);
-  const offsetStr = `${offsetSign}${String(Math.floor(absMin / 60)).padStart(2, "0")}:${String(absMin % 60).padStart(2, "0")}`;
-  return new Date(`${dateStr}T${timeStr}:00${offsetStr}`).toISOString();
+    year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hour12: false,
+  });
+  // en-CA gives "YYYY-MM-DD, HH:MM:SS"
+  const [localDate, localTime] = localStr.split(", ");
+  const actualLocalMs = new Date(`${localDate}T${localTime}Z`).getTime();
+
+  // Shift: desired local - actual local = how much to move the UTC guess
+  const offsetMs = utcGuess.getTime() - actualLocalMs;
+  return new Date(utcGuess.getTime() + offsetMs).toISOString();
 }
 
 function fmtFacilityTime(isoStr) {
