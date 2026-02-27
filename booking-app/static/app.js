@@ -211,8 +211,14 @@ function initCalendar(resources) {
 
   calendar = new FullCalendar.Calendar(calEl, {
     schedulerLicenseKey: "CC-Attribution-NonCommercial-NoDerivatives",
-    initialView: "resourceTimelineWeek",
+    initialView: "resourceTimeline7Day",
     initialDate: todayStr(),
+    views: {
+      resourceTimeline7Day: {
+        type: "resourceTimeline",
+        duration: { days: 7 },
+      },
+    },
     headerToolbar: {
       left: "prev,next today",
       center: "title",
@@ -234,7 +240,6 @@ function initCalendar(resources) {
     eventClick: onEventClick,
     selectable: true,
     selectMirror: true,
-    dateClick: onDateClick,
     select: onSelect,
     height: "auto",
     nowIndicator: true,
@@ -268,14 +273,7 @@ function closeDetail() {
   document.getElementById("detail-panel").style.display = "none";
 }
 
-// Click on a single cell → open modal pre-populated with resource + start time
-function onDateClick(info) {
-  const { dateStr, timeStr } = facilityLocalParts(info.date);
-  const resourceId = info.resource ? info.resource.id : null;
-  openModal({ resourceId, dateStr, startTime: timeStr });
-}
-
-// Drag across cells → open modal pre-populated with resource, start time, and duration
+// Click or drag on cells → open modal pre-populated with resource, start time, and duration
 function onSelect(info) {
   const { dateStr, timeStr } = facilityLocalParts(info.start);
   const durationMs = info.end - info.start;
@@ -358,12 +356,20 @@ function openModal(opts = {}) {
   }
 
   // Duration
-  const dur = opts.durationMinutes || 60;
+  const dur = (opts.durationMinutes > 0) ? opts.durationMinutes : 60;
   const durSel = document.getElementById("form-duration");
-  // Use a preset option if it matches, otherwise fall back to 60 min
+  const customEl = document.getElementById("form-duration-custom");
   const presets = Array.from(durSel.options).map(o => parseInt(o.value)).filter(v => !isNaN(v));
-  durSel.value = presets.includes(dur) ? String(dur) : "60";
-  document.getElementById("form-duration-custom").style.display = "none";
+  if (presets.includes(dur)) {
+    durSel.value = String(dur);
+    customEl.style.display = "none";
+  } else {
+    durSel.value = "custom";
+    const h = Math.floor(dur / 60);
+    const m = dur % 60;
+    customEl.value = `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+    customEl.style.display = "block";
+  }
 
   document.getElementById("status-msg").className = "";
   document.getElementById("status-msg").style.display = "none";
