@@ -10,6 +10,7 @@ let allResources = [];
 let selectedMemberId = null;
 let currentUser = null;   // { id, name, email }
 let _pendingBookingOpts = null;  // stashed opts when identity gate interrupts openModal
+let appBase = "";                      // set from /api/config; supports subdirectory deployment
 let facilityTZ = "America/New_York";  // overridden from /api/config
 
 // ── Identity / auth gate ──────────────────────────────────────────────────────
@@ -37,7 +38,7 @@ async function submitIdentity() {
   if (!email) return;
 
   try {
-    const resp = await fetch("/api/auth/identify", {
+    const resp = await fetch(`${appBase}/api/auth/identify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email }),
@@ -153,7 +154,7 @@ function facilityLocalParts(date) {
 // ── Resources ─────────────────────────────────────────────────────────────────
 
 async function loadResources() {
-  const resp = await fetch("/api/resources");
+  const resp = await fetch(`${appBase}/api/resources`);
   allResources = await resp.json();
 
   // Populate shop filter
@@ -191,7 +192,7 @@ async function fetchEvents(fetchInfo, successCallback, failureCallback) {
   const to = fetchInfo.endStr.slice(0, 10);
 
   try {
-    const resp = await fetch(`/api/bookings?from=${from}&to=${to}`);
+    const resp = await fetch(`${appBase}/api/bookings?from=${from}&to=${to}`);
     const bookings = await resp.json();
     const shop = document.getElementById("shop-filter").value;
 
@@ -439,7 +440,7 @@ async function submitBooking() {
   };
 
   try {
-    const resp = await fetch("/api/bookings", {
+    const resp = await fetch(`${appBase}/api/bookings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
@@ -479,7 +480,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     clearTimeout(memberSearchTimeout);
     memberSearchTimeout = setTimeout(async () => {
       const q = searchInput.value.trim();
-      const resp = await fetch(`/api/members/search?q=${encodeURIComponent(q)}`);
+      const resp = await fetch(`${appBase}/api/members/search?q=${encodeURIComponent(q)}`);
       const members = await resp.json();
 
       resultsEl.innerHTML = "";
@@ -526,7 +527,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   // Boot sequence — fetch config, then handle identity
-  const cfg = await fetch("/api/config").then(r => r.json());
+  const cfg = await fetch("api/config").then(r => r.json());
+  appBase = (cfg.app_base || "").replace(/\/$/, "");
   facilityTZ = cfg.timezone || "America/New_York";
 
   if (cfg.email_gate) {

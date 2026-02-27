@@ -62,4 +62,7 @@ def config():
         # Defaults to America/New_York. Override in .env for other facilities.
         # Future: auto-detect from Nexudus space record (SimpleTimeZoneId field).
         "timezone": os.getenv("BOOKING_TIMEZONE", "America/New_York"),
+        # Subdirectory prefix when served behind a reverse proxy (e.g. "/bookings").
+        # Leave blank when running at the root.
+        "app_base": os.getenv("APP_BASE", "").rstrip("/"),
     }
