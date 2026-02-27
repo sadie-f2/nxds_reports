@@ -77,16 +77,11 @@ def _mock(url: str) -> dict:
         return {"Records": [], "HasNextPage": False, "TotalItems": 0}
 
 
-def _get(endpoint: str, params: Optional[dict] = None) -> dict:
-    """GET from Nexudus, returning parsed JSON. Raises HTTPException on error."""
-    cfg = _config()
-    if cfg["mock"]:
-        return _mock(endpoint)
-
-    url = cfg["base_url"] + "/" + endpoint.lstrip("/")
+def _request(method: str, url: str, **kwargs) -> requests.Response:
+    """Make an HTTP request with one 429 retry. Raises HTTPException on failure."""
     for attempt in range(2):
         try:
-            resp = requests.get(url, headers=_headers(), params=params, timeout=30)
+            resp = requests.request(method, url, headers=_headers(), timeout=30, **kwargs)
         except requests.RequestException as exc:
             raise HTTPException(status_code=502, detail=f"Nexudus request failed: {exc}")
 
@@ -95,14 +90,22 @@ def _get(endpoint: str, params: Optional[dict] = None) -> dict:
             time.sleep(retry_after)
             continue
 
-        if not resp.ok:
-            raise HTTPException(
-                status_code=502,
-                detail=f"Nexudus error {resp.status_code} from {endpoint}",
-            )
-        return resp.json()
+        return resp
 
     raise HTTPException(status_code=502, detail="Rate limited by Nexudus after retry")
+
+
+def _get(endpoint: str, params: Optional[dict] = None) -> dict:
+    """GET from Nexudus, returning parsed JSON. Raises HTTPException on error."""
+    cfg = _config()
+    if cfg["mock"]:
+        return _mock(endpoint)
+
+    url = cfg["base_url"] + "/" + endpoint.lstrip("/")
+    resp = _request("GET", url, params=params)
+    if not resp.ok:
+        raise HTTPException(status_code=502, detail=f"Nexudus error {resp.status_code} from {endpoint}")
+    return resp.json()
 
 
 def _records(response: dict) -> list:
@@ -192,16 +195,9 @@ def post_booking(resource_id: int, member_id: int, from_time: str, to_time: str,
         "ToTime": to_time,
         "Notes": notes,
     }
-    try:
-        resp = requests.post(url, headers=_headers(), json=payload, timeout=30)
-    except requests.RequestException as exc:
-        raise HTTPException(status_code=502, detail=f"Nexudus request failed: {exc}")
-
+    resp = _request("POST", url, json=payload)
     if not resp.ok:
-        raise HTTPException(
-            status_code=resp.status_code,
-            detail=f"Nexudus booking creation failed: {resp.text}",
-        )
+        raise HTTPException(status_code=resp.status_code, detail=f"Nexudus booking creation failed: {resp.text}")
     return resp.json()
 
 
@@ -216,13 +212,6 @@ def delete_booking(booking_id: int) -> None:
         return
 
     url = cfg["base_url"] + f"/spaces/bookings/{booking_id}"
-    try:
-        resp = requests.delete(url, headers=_headers(), timeout=30)
-    except requests.RequestException as exc:
-        raise HTTPException(status_code=502, detail=f"Nexudus request failed: {exc}")
-
+    resp = _request("DELETE", url)
     if not resp.ok:
-        raise HTTPException(
-            status_code=resp.status_code,
-            detail=f"Nexudus booking deletion failed: {resp.text}",
-        )
+        raise HTTPException(status_code=resp.status_code, detail=f"Nexudus booking deletion failed: {resp.text}")
