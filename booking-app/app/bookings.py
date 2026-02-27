@@ -108,6 +108,24 @@ def list_bookings(
     return bookings
 
 
+def check_conflicts(resource_id: int, from_time: datetime, to_time: datetime) -> bool:
+    """Return True if any existing booking for resource_id overlaps [from_time, to_time).
+
+    Overlap condition: a_start < b_end AND b_start < a_end
+    """
+    from_iso = from_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    to_iso = to_time.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    records = nexudus.fetch_bookings(from_iso, to_iso, resource_id)
+    for rec in records:
+        if rec.get("ResourceId") != resource_id:
+            continue
+        existing_from = datetime.fromisoformat(rec["FromTime"].replace("Z", "+00:00"))
+        existing_to = datetime.fromisoformat(rec["ToTime"].replace("Z", "+00:00"))
+        if from_time < existing_to and existing_from < to_time:
+            return True
+    return False
+
+
 @router.post("/bookings", response_model=dict, status_code=201)
 def create_booking(req: CreateBookingRequest, request: Request):
     # Duration validation
@@ -118,6 +136,17 @@ def create_booking(req: CreateBookingRequest, request: Request):
         raise HTTPException(
             status_code=400,
             detail=f"Bookings cannot exceed {MAX_DURATION_HOURS} hours.",
+        )
+
+    # Past-booking check
+    if req.from_time < datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="Cannot book a start time in the past.")
+
+    # Conflict check
+    if check_conflicts(req.resource_id, req.from_time, req.to_time):
+        raise HTTPException(
+            status_code=409,
+            detail="This resource is already booked for part or all of that time.",
         )
 
     # Determine IP (handle proxies)

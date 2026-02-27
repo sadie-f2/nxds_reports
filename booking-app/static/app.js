@@ -344,6 +344,12 @@ async function submitBooking() {
   const fromDt = new Date(fromISO);
   const toDt = new Date(fromDt.getTime() + durationMin * 60000);
 
+  // Past-booking check
+  if (fromDt < new Date()) {
+    showStatus("Start time is in the past.", "error");
+    return;
+  }
+
   // Detect on-behalf-of
   const onBehalf = currentUser && currentUser.id !== memberId;
   const memberName = document.getElementById("member-search").value;
