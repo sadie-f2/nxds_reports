@@ -543,6 +543,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const cfg = await fetch("api/config").then(r => r.json());
   appBase = (cfg.app_base || "").replace(/\/$/, "");
   facilityTZ = cfg.timezone || "America/New_York";
+  if (cfg.version) {
+    const hash = cfg.git_commit && cfg.git_commit !== "unknown" ? ` (${cfg.git_commit})` : "";
+    document.getElementById("app-version").textContent = `v${cfg.version}${hash}`;
+  }
 
   if (cfg.email_gate) {
     document.getElementById("identity-gate").dataset.mandatory = "1";

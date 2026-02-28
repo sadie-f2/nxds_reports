@@ -9,11 +9,27 @@ Production:
     uvicorn app.main:app --host 0.0.0.0 --port 8000
 """
 
+import subprocess
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
+
+APP_VERSION = "0.2.2"
+
+def _git_short_hash() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "--short", "HEAD"],
+            cwd=Path(__file__).parent.parent.parent,
+            stderr=subprocess.DEVNULL,
+        ).decode().strip()
+    except Exception:
+        return "unknown"
+
+GIT_COMMIT = _git_short_hash()
 
 from .auth import router as auth_router
 from .resources import router as resources_router
@@ -21,7 +37,7 @@ from .bookings import router as bookings_router
 from .availability import router as availability_router
 from .members import router as members_router
 
-app = FastAPI(title="A² Booking App", version="0.1.0")
+app = FastAPI(title="A² Booking App", version=APP_VERSION)
 
 app.add_middleware(
     CORSMiddleware,
@@ -65,4 +81,6 @@ def config():
         # Subdirectory prefix when served behind a reverse proxy (e.g. "/bookings").
         # Leave blank when running at the root.
         "app_base": os.getenv("APP_BASE", "").rstrip("/"),
+        "version": APP_VERSION,
+        "git_commit": GIT_COMMIT,
     }

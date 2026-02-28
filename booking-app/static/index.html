@@ -251,8 +251,13 @@
     }
 
     /* Identity controls in header */
-    #identity-controls {
+    #app-version {
+      font-size: 0.75rem;
+      opacity: 0.5;
       margin-left: auto;
+    }
+
+    #identity-controls {
       font-size: 0.85rem;
     }
 
@@ -280,6 +285,7 @@
 
 <header>
   <h1>A² Equipment Bookings</h1>
+  <span id="app-version">v0.2.2</span>
   <div id="identity-controls">
     <span id="current-user" onclick="signOut()" title="Click to sign out" style="display:none"></span>
     <button id="signin-btn" onclick="openIdentityGate()" style="display:none">Sign in</button>
@@ -298,7 +304,7 @@
 </div>
 
 <div id="filter-bar">
-  <label>Shop:
+  <label style="display:none">Shop:
     <select id="shop-filter">
       <option value="">All shops</option>
     </select>
