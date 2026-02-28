@@ -167,16 +167,28 @@ async function loadResources() {
     shopSel.appendChild(opt);
   });
 
-  // Populate booking form resource dropdown
+  populateResourceDropdown(allResources);
+
+  return allResources;
+}
+
+function populateResourceDropdown(resources) {
   const formRes = document.getElementById("form-resource");
-  allResources.forEach(r => {
+  formRes.innerHTML = "";
+  resources.forEach(r => {
     const opt = document.createElement("option");
     opt.value = r.id;
     opt.textContent = r.name;
     formRes.appendChild(opt);
   });
+}
 
-  return allResources;
+function toFCResources(resources) {
+  return resources.map(r => ({
+    id: String(r.id),
+    title: r.name.includes("|") ? r.name.split("|").slice(1).join("|").trim() : r.name,
+    extendedProps: { shop: r.shop },
+  }));
 }
 
 function filteredResources() {
@@ -237,11 +249,7 @@ function initCalendar(resources) {
     slotLabelInterval: "02:00",
     resourceAreaHeaderContent: "Equipment",
     resourceAreaWidth: "200px",
-    resources: resources.map(r => ({
-      id: String(r.id),
-      title: r.name.includes("|") ? r.name.split("|").slice(1).join("|").trim() : r.name,
-      extendedProps: { shop: r.shop },
-    })),
+    resources: toFCResources(resources),
     resourceGroupField: "shop",
     events: fetchEvents,
     eventClick: onEventClick,
@@ -516,7 +524,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Wire up controls
   document.getElementById("book-btn").addEventListener("click", openModal);
   document.getElementById("shop-filter").addEventListener("change", () => {
-    if (calendar) calendar.refetchEvents();
+    if (calendar) {
+      const filtered = filteredResources();
+      calendar.setOption("resources", toFCResources(filtered));
+      calendar.refetchEvents();
+    }
+    populateResourceDropdown(filteredResources());
   });
 
   populateStartTimes();
