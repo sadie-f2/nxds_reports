@@ -1,0 +1,171 @@
+{
+  "events": [
+    {
+      "id": "1001001001",
+      "name": { "text": "Metal Shop 101", "html": "Metal Shop 101" },
+      "description": { "text": "Introduction to the metal shop: safety, tools, and your first project.", "html": "<p>Introduction to the metal shop: safety, tools, and your first project.</p>" },
+      "url": "https://www.eventbrite.com/e/metal-shop-101-tickets-1001001001",
+      "start": { "timezone": "America/New_York", "local": "2026-03-08T13:00:00", "utc": "2026-03-08T18:00:00Z" },
+      "end":   { "timezone": "America/New_York", "local": "2026-03-08T17:00:00", "utc": "2026-03-08T22:00:00Z" },
+      "capacity": 10,
+      "status": "live",
+      "is_free": false,
+      "online_event": false,
+      "organization_id": "123456789",
+      "ticket_availability": {
+        "quantity_total": 10,
+        "quantity_sold": 9,
+        "is_sold_out": false,
+        "minimum_ticket_price": { "currency": "USD", "value": 38071, "display": "$380.71" },
+        "maximum_ticket_price": { "currency": "USD", "value": 38071, "display": "$380.71" }
+      }
+    },
+    {
+      "id": "1001001002",
+      "name": { "text": "Wood Shop 101", "html": "Wood Shop 101" },
+      "description": { "text": "Get started with hand and power tools in the wood shop.", "html": "<p>Get started with hand and power tools in the wood shop.</p>" },
+      "url": "https://www.eventbrite.com/e/wood-shop-101-tickets-1001001002",
+      "start": { "timezone": "America/New_York", "local": "2026-03-07T14:00:00", "utc": "2026-03-07T19:00:00Z" },
+      "end":   { "timezone": "America/New_York", "local": "2026-03-07T18:00:00", "utc": "2026-03-07T23:00:00Z" },
+      "capacity": 12,
+      "status": "live",
+      "is_free": false,
+      "online_event": false,
+      "organization_id": "123456789",
+      "ticket_availability": {
+        "quantity_total": 12,
+        "quantity_sold": 5,
+        "is_sold_out": false,
+        "minimum_ticket_price": { "currency": "USD", "value": 15909, "display": "$159.09" },
+        "maximum_ticket_price": { "currency": "USD", "value": 15909, "display": "$159.09" }
+      }
+    },
+    {
+      "id": "1001001003",
+      "name": { "text": "Intro to Welding - MIG, TIG, & Stick", "html": "Intro to Welding - MIG, TIG, &amp; Stick" },
+      "description": { "text": "Hands-on introduction to MIG, TIG, and stick welding.", "html": "<p>Hands-on introduction to MIG, TIG, and stick welding.</p>" },
+      "url": "https://www.eventbrite.com/e/intro-to-welding-tickets-1001001003",
+      "start": { "timezone": "America/New_York", "local": "2026-03-15T13:00:00", "utc": "2026-03-15T17:00:00Z" },
+      "end":   { "timezone": "America/New_York", "local": "2026-03-15T17:00:00", "utc": "2026-03-15T21:00:00Z" },
+      "capacity": 8,
+      "status": "live",
+      "is_free": false,
+      "online_event": false,
+      "organization_id": "123456789",
+      "ticket_availability": {
+        "quantity_total": 8,
+        "quantity_sold": 2,
+        "is_sold_out": false,
+        "minimum_ticket_price": { "currency": "USD", "value": 19071, "display": "$190.71" },
+        "maximum_ticket_price": { "currency": "USD", "value": 19071, "display": "$190.71" }
+      }
+    },
+    {
+      "id": "1001001004",
+      "name": { "text": "Figure Drawing", "html": "Figure Drawing" },
+      "description": { "text": "Open figure drawing session with live model.", "html": "<p>Open figure drawing session with live model.</p>" },
+      "url": "https://www.eventbrite.com/e/figure-drawing-tickets-1001001004",
+      "start": { "timezone": "America/New_York", "local": "2026-03-09T18:30:00", "utc": "2026-03-09T23:30:00Z" },
+      "end":   { "timezone": "America/New_York", "local": "2026-03-09T21:00:00", "utc": "2026-03-10T02:00:00Z" },
+      "capacity": 20,
+      "status": "live",
+      "is_free": false,
+      "online_event": false,
+      "organization_id": "123456789",
+      "ticket_availability": {
+        "quantity_total": 20,
+        "quantity_sold": 20,
+        "is_sold_out": true,
+        "minimum_ticket_price": { "currency": "USD", "value": 3261, "display": "$32.61" },
+        "maximum_ticket_price": { "currency": "USD", "value": 3261, "display": "$32.61" }
+      }
+    },
+    {
+      "id": "1001001005",
+      "name": { "text": "Jewelry 101", "html": "Jewelry 101" },
+      "description": { "text": "Learn basic jewelry-making techniques: sawing, filing, and soldering.", "html": "<p>Learn basic jewelry-making techniques: sawing, filing, and soldering.</p>" },
+      "url": "https://www.eventbrite.com/e/jewelry-101-tickets-1001001005",
+      "start": { "timezone": "America/New_York", "local": "2026-03-10T17:30:00", "utc": "2026-03-10T22:30:00Z" },
+      "end":   { "timezone": "America/New_York", "local": "2026-03-10T20:30:00", "utc": "2026-03-11T01:30:00Z" },
+      "capacity": 8,
+      "status": "live",
+      "is_free": false,
+      "online_event": false,
+      "organization_id": "123456789",
+      "ticket_availability": {
+        "quantity_total": 8,
+        "quantity_sold": 3,
+        "is_sold_out": false,
+        "minimum_ticket_price": { "currency": "USD", "value": 24869, "display": "$248.69" },
+        "maximum_ticket_price": { "currency": "USD", "value": 24869, "display": "$248.69" }
+      }
+    },
+    {
+      "id": "1001001006",
+      "name": { "text": "*Free Fiber Arts Shop Night", "html": "*Free Fiber Arts Shop Night" },
+      "description": { "text": "Drop in for a free evening of fiber arts. All skill levels welcome.", "html": "<p>Drop in for a free evening of fiber arts. All skill levels welcome.</p>" },
+      "url": "https://www.eventbrite.com/e/free-fiber-arts-shop-night-tickets-1001001006",
+      "start": { "timezone": "America/New_York", "local": "2026-03-18T19:00:00", "utc": "2026-03-18T23:00:00Z" },
+      "end":   { "timezone": "America/New_York", "local": "2026-03-18T21:30:00", "utc": "2026-03-19T01:30:00Z" },
+      "capacity": 30,
+      "status": "live",
+      "is_free": true,
+      "online_event": false,
+      "organization_id": "123456789",
+      "ticket_availability": {
+        "quantity_total": 30,
+        "quantity_sold": 8,
+        "is_sold_out": false,
+        "minimum_ticket_price": { "currency": "USD", "value": 0, "display": "Free" },
+        "maximum_ticket_price": { "currency": "USD", "value": 0, "display": "Free" }
+      }
+    },
+    {
+      "id": "1001001007",
+      "name": { "text": "Plasma Cutting 101", "html": "Plasma Cutting 101" },
+      "description": { "text": "Getting started with CNC and handheld plasma cutting.", "html": "<p>Getting started with CNC and handheld plasma cutting.</p>" },
+      "url": "https://www.eventbrite.com/e/plasma-cutting-101-tickets-1001001007",
+      "start": { "timezone": "America/New_York", "local": "2026-03-20T18:00:00", "utc": "2026-03-20T22:00:00Z" },
+      "end":   { "timezone": "America/New_York", "local": "2026-03-20T21:00:00", "utc": "2026-03-21T01:00:00Z" },
+      "capacity": 6,
+      "status": "live",
+      "is_free": false,
+      "online_event": false,
+      "organization_id": "123456789",
+      "ticket_availability": {
+        "quantity_total": 6,
+        "quantity_sold": 1,
+        "is_sold_out": false,
+        "minimum_ticket_price": { "currency": "USD", "value": 8531, "display": "$85.31" },
+        "maximum_ticket_price": { "currency": "USD", "value": 8531, "display": "$85.31" }
+      }
+    },
+    {
+      "id": "1001001008",
+      "name": { "text": "Artisans Asylum Public Tour", "html": "Artisans Asylum Public Tour" },
+      "description": { "text": "A guided tour of the Artisans Asylum facility. Free and open to the public.", "html": "<p>A guided tour of the Artisans Asylum facility. Free and open to the public.</p>" },
+      "url": "https://www.eventbrite.com/e/public-tour-tickets-1001001008",
+      "start": { "timezone": "America/New_York", "local": "2026-03-21T11:00:00", "utc": "2026-03-21T15:00:00Z" },
+      "end":   { "timezone": "America/New_York", "local": "2026-03-21T12:00:00", "utc": "2026-03-21T16:00:00Z" },
+      "capacity": 25,
+      "status": "live",
+      "is_free": true,
+      "online_event": false,
+      "organization_id": "123456789",
+      "ticket_availability": {
+        "quantity_total": 25,
+        "quantity_sold": 14,
+        "is_sold_out": false,
+        "minimum_ticket_price": { "currency": "USD", "value": 0, "display": "Free" },
+        "maximum_ticket_price": { "currency": "USD", "value": 0, "display": "Free" }
+      }
+    }
+  ],
+  "pagination": {
+    "object_count": 8,
+    "page_number": 1,
+    "page_size": 50,
+    "page_count": 1,
+    "has_more_items": false
+  }
+}
