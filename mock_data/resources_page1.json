@@ -1,14 +1,18 @@
 {
   "Records": [
-    {"Id": 10, "Name": "DigiFab | Laser Cutter | Calico", "ResourceTypeName": "Tool", "Description": null},
-    {"Id": 11, "Name": "DigiFab | Laser Cutter | Hobbes", "ResourceTypeName": "Tool", "Description": null},
-    {"Id": 12, "Name": "DigiFab | Bambu Labs P1P", "ResourceTypeName": "Tool", "Description": null},
-    {"Id": 13, "Name": "Wood Shop | ShopBot", "ResourceTypeName": "Tool", "Description": null},
-    {"Id": 14, "Name": "Wood Shop | Table Saw", "ResourceTypeName": "Tool", "Description": null},
-    {"Id": 15, "Name": "Metal Shop | CNC Plasma Cutter", "ResourceTypeName": "Tool", "Description": null},
-    {"Id": 16, "Name": "Metal Shop | MIG Welder 1", "ResourceTypeName": "Tool", "Description": null},
-    {"Id": 17, "Name": "Fiber Arts | Domestic Sewing Machine 1", "ResourceTypeName": "Tool", "Description": null}
+    {"Id": 1, "Name": "DigiFab",    "ResourceTypeName": "Shop", "LinkedResourceIds": "10,11,12", "Description": null},
+    {"Id": 2, "Name": "Wood Shop",  "ResourceTypeName": "Shop", "LinkedResourceIds": "13,14",    "Description": null},
+    {"Id": 3, "Name": "Metal Shop", "ResourceTypeName": "Shop", "LinkedResourceIds": "15,16",    "Description": null},
+    {"Id": 4, "Name": "Fiber Arts", "ResourceTypeName": "Shop", "LinkedResourceIds": "17",       "Description": null},
+    {"Id": 10, "Name": "DigiFab | Laser Cutter | Calico",          "ResourceTypeName": "Tool", "Description": null},
+    {"Id": 11, "Name": "DigiFab | Laser Cutter | Hobbes",          "ResourceTypeName": "Tool", "Description": null},
+    {"Id": 12, "Name": "DigiFab | Bambu Labs P1P",                 "ResourceTypeName": "Tool", "Description": null},
+    {"Id": 13, "Name": "Wood Shop | ShopBot",                      "ResourceTypeName": "Tool", "Description": null},
+    {"Id": 14, "Name": "Wood Shop | Table Saw",                    "ResourceTypeName": "Tool", "Description": null},
+    {"Id": 15, "Name": "Metal Shop | CNC Plasma Cutter",           "ResourceTypeName": "Tool", "Description": null},
+    {"Id": 16, "Name": "Metal Shop | MIG Welder 1",                "ResourceTypeName": "Tool", "Description": null},
+    {"Id": 17, "Name": "Fiber Arts | Domestic Sewing Machine 1",   "ResourceTypeName": "Tool", "Description": null}
   ],
   "HasNextPage": false,
-  "TotalItems": 8
+  "TotalItems": 12
 }
