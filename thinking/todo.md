@@ -29,12 +29,14 @@
 - [ ] Set up wiki_monitor.sh on a separate machine to log slow responses
       to /var/www/html/wikilog.txt
 - [ ] Replace personal Nexudus credentials with a dedicated service account.
-      Nexudus has no real API key mechanism — bearer tokens are short-lived
-      and require refresh; the "connect to REST API" checkbox is cosmetic.
-      Best practice:
+      Nexudus API key situation: no clean option for private internal apps.
+      - Bearer tokens are short-lived and require refresh
+      - App Key/Secret requires registering through the marketplace process
+        even for private apps — not worth the overhead for one internal tool
+      Best practice given constraints:
       1. Create a dedicated Nexudus staff account e.g. bookingapp@artisansasylum.com
          with minimum admin role needed (Spaces + Billing read/write)
       2. Put those credentials in .env as NEXUDUS_EMAIL / NEXUDUS_PASSWORD
-      3. Disable or leave NEXUDUS_BOOKING_TOKEN blank
+      3. Leave NEXUDUS_BOOKING_TOKEN blank
       This decouples the service from any personal account and makes
       revocation easy (just disable the service account).
