@@ -17,7 +17,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 
-APP_VERSION = "0.2.2"
+APP_VERSION = "0.2.3"
 
 def _git_short_hash() -> str:
     try:

@@ -1,9 +1,10 @@
 """
-POST /api/auth/identify — email-based identity check.
+POST /api/auth/identify — email + password identity check.
 
-No password. Member enters their email; if it matches an active member
-in Nexudus, they're identified and can proceed on their own behalf.
-This is trust-first auth: we verify identity, not credentials.
+Member enters their Nexudus email and password. We first confirm the email
+matches an active member in our cached member list, then verify the password
+against the Nexudus token endpoint. Admin API credentials are used for all
+subsequent data operations — the member token is discarded immediately.
 """
 
 from fastapi import APIRouter, HTTPException
@@ -17,6 +18,7 @@ router = APIRouter()
 
 class IdentifyRequest(BaseModel):
     email: str
+    password: str
 
 
 class IdentifyResponse(BaseModel):
@@ -32,4 +34,6 @@ def identify(req: IdentifyRequest):
     match = next((m for m in members if m.email.lower() == email), None)
     if not match:
         raise HTTPException(status_code=404, detail="No active member found with that email address.")
+    if not nexudus.verify_member_password(email, req.password):
+        raise HTTPException(status_code=401, detail="Incorrect password.")
     return IdentifyResponse(id=match.id, name=match.name, email=match.email)

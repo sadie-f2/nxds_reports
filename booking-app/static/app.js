@@ -32,16 +32,17 @@ function clearIdentity() {
 
 async function submitIdentity() {
   const email = document.getElementById("identity-email").value.trim();
+  const password = document.getElementById("identity-password").value;
   const errEl = document.getElementById("identity-error");
   errEl.style.display = "none";
 
-  if (!email) return;
+  if (!email || !password) return;
 
   try {
     const resp = await fetch(`${appBase}/api/auth/identify`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, password }),
     });
 
     if (resp.ok) {
@@ -86,6 +87,18 @@ function signOut() {
     document.getElementById("identity-gate").classList.add("open");
   } else {
     document.getElementById("signin-btn").style.display = "inline";
+  }
+}
+
+function togglePassword() {
+  const input = document.getElementById("identity-password");
+  const btn   = document.getElementById("pw-toggle");
+  if (input.type === "password") {
+    input.type = "text";
+    btn.textContent = "🙈";
+  } else {
+    input.type = "password";
+    btn.textContent = "👁";
   }
 }
 
@@ -536,6 +549,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Enter key on identity gate
   document.getElementById("identity-email").addEventListener("keydown", e => {
+    if (e.key === "Enter") document.getElementById("identity-password").focus();
+  });
+  document.getElementById("identity-password").addEventListener("keydown", e => {
     if (e.key === "Enter") submitIdentity();
   });
 

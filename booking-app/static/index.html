@@ -188,14 +188,12 @@
     #status-msg.success { background: #d4edda; color: #155724; display: block; }
     #status-msg.error { background: #f8d7da; color: #721c24; display: block; }
 
-    /* Identity gate */
+    /* Identity gate — inline banner */
     #identity-gate {
       display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.6);
-      z-index: 2000;
-      align-items: center;
+      background: #eef0f8;
+      border-bottom: 1px solid #ccd;
+      padding: 24px 20px;
       justify-content: center;
     }
 
@@ -203,29 +201,62 @@
 
     #identity-wrap {
       background: #fff;
-      border-radius: 10px;
-      padding: 36px 32px;
+      border-radius: 8px;
+      border: 1px solid #dde;
+      padding: 28px 28px 24px;
       width: 380px;
       max-width: 95vw;
       text-align: center;
     }
 
-    #identity-wrap h2 { font-size: 1.1rem; margin-bottom: 8px; color: #1a1a2e; }
-    #identity-wrap p { font-size: 0.88rem; color: #666; margin-bottom: 24px; }
+    #identity-wrap h2 { font-size: 1.1rem; margin-bottom: 6px; color: #1a1a2e; }
+    #identity-wrap p { font-size: 0.88rem; color: #666; margin-bottom: 20px; }
 
-    #identity-wrap input[type=email] {
+    #identity-wrap input[type=email],
+    #identity-wrap input[type=password],
+    #identity-wrap input[type=text] {
       width: 100%;
       padding: 10px 12px;
       border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 1rem;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
-    #identity-wrap input[type=email]:focus {
+    #identity-wrap input:focus {
       outline: none;
       border-color: #1a1a2e;
     }
+
+    #pw-row {
+      position: relative;
+      margin-bottom: 10px;
+    }
+
+    #pw-row input {
+      width: 100%;
+      padding: 10px 40px 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 1rem;
+      margin-bottom: 0;
+    }
+
+    #pw-toggle {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      color: #888;
+      padding: 0;
+      line-height: 1;
+    }
+
+    #pw-toggle:hover { color: #333; }
 
     #identity-submit {
       width: 100%;
@@ -285,20 +316,24 @@
 
 <header>
   <h1>A² Equipment Bookings</h1>
-  <span id="app-version">v0.2.2</span>
+  <span id="app-version">v0.2.3</span>
   <div id="identity-controls">
     <span id="current-user" onclick="signOut()" title="Click to sign out" style="display:none"></span>
     <button id="signin-btn" onclick="openIdentityGate()" style="display:none">Sign in</button>
   </div>
 </header>
 
-<!-- Identity gate — shown on load if not identified -->
+<!-- Identity gate — inline, shown when not signed in -->
 <div id="identity-gate" class="open">
   <div id="identity-wrap">
     <h2>Welcome to A² Bookings</h2>
-    <p>Enter your member email address to continue.</p>
+    <p>Sign in with your Nexudus email and password.</p>
     <input type="email" id="identity-email" placeholder="you@example.com" autocomplete="email" />
-    <button id="identity-submit" onclick="submitIdentity()">Continue</button>
+    <div id="pw-row">
+      <input type="password" id="identity-password" placeholder="Password" autocomplete="current-password" />
+      <button id="pw-toggle" type="button" onclick="togglePassword()" title="Show/hide password">👁</button>
+    </div>
+    <button id="identity-submit" onclick="submitIdentity()">Sign in</button>
     <div id="identity-error"></div>
   </div>
 </div>

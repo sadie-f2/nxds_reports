@@ -151,6 +151,34 @@ def fetch_bookings(from_dt: str, to_dt: str, resource_id: Optional[int] = None) 
     return get_all_pages("/spaces/bookings", extra_params=params)
 
 
+def verify_member_password(email: str, password: str) -> bool:
+    """
+    Verify a member's Nexudus password via the space token endpoint.
+    Returns True if credentials are valid, False otherwise.
+    In mock mode always returns True.
+    """
+    cfg = _config()
+    if cfg["mock"]:
+        return True
+
+    space = os.getenv("NEXUDUS_SPACE", "").strip()
+    if not space:
+        raise HTTPException(status_code=500, detail="NEXUDUS_SPACE not configured.")
+
+    url = f"https://{space}.spaces.nexudus.com/api/token"
+    try:
+        resp = requests.post(
+            url,
+            data=f"grant_type=password&username={requests.utils.quote(email)}&password={requests.utils.quote(password)}",
+            headers={"Content-Type": "application/x-www-form-urlencoded"},
+            timeout=10,
+        )
+    except requests.RequestException as exc:
+        raise HTTPException(status_code=502, detail=f"Nexudus auth check failed: {exc}")
+
+    return resp.status_code == 200
+
+
 def fetch_members() -> list[dict]:
     """Fetch active contracts for member name/ID lookup."""
     return get_all_pages(
