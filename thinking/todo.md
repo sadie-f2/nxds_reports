@@ -28,13 +28,13 @@
 - [ ] Install etckeeper on the wiki/booking server to put /etc under git
 - [ ] Set up wiki_monitor.sh on a separate machine to log slow responses
       to /var/www/html/wikilog.txt
-- [ ] Cut production Nexudus API key (NEXUDUS_BOOKING_TOKEN) and test.
-      The token needs access to these endpoints only:
-      - GET  /spaces/resources          (resource/tool list)
-      - GET  /billing/coworkercontracts (active member list for auth)
-      - GET  /spaces/bookings           (calendar view, conflict check)
-      - POST /spaces/bookings           (create booking)
-      - DELETE /spaces/bookings/{id}    (cancel booking)
-      In Nexudus admin: Settings → API → create a token with read/write
-      on Spaces and Billing modules. Set as NEXUDUS_BOOKING_TOKEN in .env
-      and leave NEXUDUS_EMAIL/NEXUDUS_PASSWORD blank.
+- [ ] Replace personal Nexudus credentials with a dedicated service account.
+      Nexudus has no real API key mechanism — bearer tokens are short-lived
+      and require refresh; the "connect to REST API" checkbox is cosmetic.
+      Best practice:
+      1. Create a dedicated Nexudus staff account e.g. bookingapp@artisansasylum.com
+         with minimum admin role needed (Spaces + Billing read/write)
+      2. Put those credentials in .env as NEXUDUS_EMAIL / NEXUDUS_PASSWORD
+      3. Disable or leave NEXUDUS_BOOKING_TOKEN blank
+      This decouples the service from any personal account and makes
+      revocation easy (just disable the service account).
