@@ -28,4 +28,13 @@
 - [ ] Install etckeeper on the wiki/booking server to put /etc under git
 - [ ] Set up wiki_monitor.sh on a separate machine to log slow responses
       to /var/www/html/wikilog.txt
-- [ ] Cut production Nexudus API key (NEXUDUS_BOOKING_TOKEN) and test
+- [ ] Cut production Nexudus API key (NEXUDUS_BOOKING_TOKEN) and test.
+      The token needs access to these endpoints only:
+      - GET  /spaces/resources          (resource/tool list)
+      - GET  /billing/coworkercontracts (active member list for auth)
+      - GET  /spaces/bookings           (calendar view, conflict check)
+      - POST /spaces/bookings           (create booking)
+      - DELETE /spaces/bookings/{id}    (cancel booking)
+      In Nexudus admin: Settings → API → create a token with read/write
+      on Spaces and Billing modules. Set as NEXUDUS_BOOKING_TOKEN in .env
+      and leave NEXUDUS_EMAIL/NEXUDUS_PASSWORD blank.
