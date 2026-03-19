@@ -2,7 +2,7 @@
 GET /api/members/search?q= — member name search for the booking name picker.
 
 Returns active members whose name or email contains the query string.
-Cached for 30 minutes; member list changes slowly.
+Cached for 24 hours; member list changes rarely.
 """
 
 from fastapi import APIRouter, Query
@@ -13,7 +13,7 @@ from .models import MemberResult
 router = APIRouter()
 
 CACHE_KEY = "members"
-CACHE_TTL = 1800  # 30 minutes
+CACHE_TTL = 86400  # 24 hours
 
 
 def _load_members() -> list[MemberResult]:

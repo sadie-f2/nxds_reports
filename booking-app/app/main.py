@@ -35,9 +35,20 @@ from .auth import router as auth_router
 from .resources import router as resources_router
 from .bookings import router as bookings_router
 from .availability import router as availability_router
-from .members import router as members_router
+from .members import router as members_router, _load_members
 
 app = FastAPI(title="A² Booking App", version=APP_VERSION)
+
+
+@app.on_event("startup")
+async def prefetch_members():
+    """Warm the member cache on startup so the first sign-in is fast."""
+    import os
+    if os.getenv("NEXUDUS_MOCK", "0").strip() != "1":
+        try:
+            _load_members()
+        except Exception:
+            pass  # non-fatal — cache will fill on first request
 
 app.add_middleware(
     CORSMiddleware,
