@@ -7,6 +7,7 @@ supports NEXUDUS_MOCK=1 for local development.
 """
 
 import json
+import logging
 import os
 import time
 from pathlib import Path
@@ -15,6 +16,16 @@ from typing import Any, Optional
 import requests
 from dotenv import load_dotenv
 from fastapi import HTTPException
+
+# Append one line per Nexudus API call: timestamp method endpoint status elapsed
+_api_log = logging.getLogger("nexudus.api")
+_api_log.setLevel(logging.INFO)
+_api_log.propagate = False
+_log_path = Path(__file__).resolve().parent.parent / "logs" / "nexudus_calls.log"
+_log_path.parent.mkdir(exist_ok=True)
+_fh = logging.FileHandler(_log_path)
+_fh.setFormatter(logging.Formatter("%(asctime)s %(message)s", datefmt="%Y-%m-%d %H:%M:%S"))
+_api_log.addHandler(_fh)
 
 # Mock data lives at the repo root alongside the shared nexudus.py
 MOCK_DATA_DIR = Path(__file__).resolve().parent.parent.parent / "mock_data"
@@ -84,10 +95,16 @@ def _request(method: str, url: str, **kwargs) -> requests.Response:
     """Make an HTTP request with one 429 retry. Raises HTTPException on failure."""
     auth = _auth_kwargs()
     for attempt in range(2):
+        t0 = time.monotonic()
         try:
             resp = requests.request(method, url, timeout=30, **auth, **kwargs)
         except requests.RequestException as exc:
+            elapsed = time.monotonic() - t0
+            _api_log.info("%-6s %s ERROR %.3fs %s", method, url, elapsed, exc)
             raise HTTPException(status_code=502, detail=f"Nexudus request failed: {exc}")
+
+        elapsed = time.monotonic() - t0
+        _api_log.info("%-6s %s %s %.3fs", method, url, resp.status_code, elapsed)
 
         if resp.status_code == 429 and attempt == 0:
             retry_after = int(resp.headers.get("Retry-After", 5))
@@ -103,6 +120,7 @@ def _get(endpoint: str, params: Optional[dict] = None) -> dict:
     """GET from Nexudus, returning parsed JSON. Raises HTTPException on error."""
     cfg = _config()
     if cfg["mock"]:
+        _api_log.info("%-6s %s MOCK", "GET", endpoint)
         return _mock(endpoint)
 
     url = cfg["base_url"] + "/" + endpoint.lstrip("/")
